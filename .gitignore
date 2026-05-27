@@ -27,3 +27,5 @@ Homestead.yaml
 Thumbs.db
 /database/*.sqlite
 /database/*.sqlite-journal
+/public/pwa/node_modules
+/public/pwa/package-lock.json

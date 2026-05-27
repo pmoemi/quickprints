@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register(@json(asset('sw.js')) + '?v=5').then(function(reg) {
+      navigator.serviceWorker.register(@json(asset('sw.js')) + '?v=6').then(function(reg) {
         reg.update();
         document.addEventListener('visibilitychange', function() {
           if (document.visibilityState === 'visible') reg.update();

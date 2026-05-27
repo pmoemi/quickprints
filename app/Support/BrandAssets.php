@@ -5,7 +5,7 @@ namespace App\Support;
 class BrandAssets
 {
     /** Bump manually when you replace launcher PNGs to force reinstall prompts. */
-    private const PWA_ICON_EPOCH = '20260527-launcher-v2';
+    private const PWA_ICON_EPOCH = '20260527-q-v1';
 
     /** Resolve branding file URLs against the current app base (works in subfolders). */
     public static function publicUrl(?string $url): ?string
