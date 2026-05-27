@@ -16,6 +16,7 @@ use App\Models\SalesLog;
 use App\Models\Staff;
 use App\Models\User;
 use App\Support\BmsSettingsDefaults;
+use App\Support\DemoData;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -29,12 +30,12 @@ class BmsDemoSeeder extends Seeder
         );
 
         $users = [
-            ['email' => 'admin@quickprints.co.ke', 'password' => 'Admin@2024', 'name' => 'James Mwangi', 'role' => 'Admin', 'branch' => 'all'],
-            ['email' => 'gm@quickprints.co.ke', 'password' => 'Admin@2024', 'name' => 'Mary Wanjiku', 'role' => 'General Manager', 'branch' => 'all'],
-            ['email' => 'ops@quickprints.co.ke', 'password' => 'Admin@2024', 'name' => 'Peter Kamau', 'role' => 'Operations Manager', 'branch' => 'Westlands'],
-            ['email' => 'grace@quickprints.co.ke', 'password' => 'Admin@2024', 'name' => 'Grace Achieng', 'role' => 'Receptionist', 'branch' => 'CBD'],
-            ['email' => 'david@quickprints.co.ke', 'password' => 'Admin@2024', 'name' => 'David Ochieng', 'role' => 'Designer', 'branch' => 'Westlands'],
-            ['email' => 'sarah@quickprints.co.ke', 'password' => 'Admin@2024', 'name' => 'Sarah Njeri', 'role' => 'Sales', 'branch' => 'Karen'],
+            ['email' => DemoData::USER_EMAILS[0], 'password' => DemoData::DEFAULT_ADMIN_PASSWORD, 'name' => 'James Mwangi', 'role' => 'Admin', 'branch' => 'all'],
+            ['email' => DemoData::USER_EMAILS[1], 'password' => DemoData::DEFAULT_ADMIN_PASSWORD, 'name' => 'Mary Wanjiku', 'role' => 'General Manager', 'branch' => 'all'],
+            ['email' => DemoData::USER_EMAILS[2], 'password' => DemoData::DEFAULT_ADMIN_PASSWORD, 'name' => 'Peter Kamau', 'role' => 'Operations Manager', 'branch' => 'Westlands'],
+            ['email' => DemoData::USER_EMAILS[3], 'password' => DemoData::DEFAULT_ADMIN_PASSWORD, 'name' => 'Grace Achieng', 'role' => 'Receptionist', 'branch' => 'CBD'],
+            ['email' => DemoData::USER_EMAILS[4], 'password' => DemoData::DEFAULT_ADMIN_PASSWORD, 'name' => 'David Ochieng', 'role' => 'Designer', 'branch' => 'Westlands'],
+            ['email' => DemoData::USER_EMAILS[5], 'password' => DemoData::DEFAULT_ADMIN_PASSWORD, 'name' => 'Sarah Njeri', 'role' => 'Sales', 'branch' => 'Karen'],
         ];
 
         foreach ($users as $user) {

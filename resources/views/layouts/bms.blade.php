@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<meta name="theme-color" content="#b91c1c">
+<meta name="theme-color" content="{{ $bmsBrand['primary'] ?? '#b91c1c' }}">
 <title>{{ $bmsSettings['company_name'] ?? config('app.name', 'QuickPrints') }} — BMS</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -18,9 +18,18 @@
   --text: #e8eaf0;
   --text2: #9ba3b8;
   --text3: #5a6280;
-  --accent: #b91c1c;
-  --accent2: #dc2626;
-  --accent-dim: rgba(185,28,28,0.16);
+  --accent: {{ $bmsBrand['primary'] ?? '#b91c1c' }};
+  --accent2: {{ $bmsBrand['secondary'] ?? '#dc2626' }};
+  --accent-rgb: {{ $bmsBrand['rgb'] ?? '185, 28, 28' }};
+  --accent-dim: rgba(var(--accent-rgb), 0.16);
+  --accent-a07: rgba(var(--accent-rgb), 0.07);
+  --accent-a08: rgba(var(--accent-rgb), 0.08);
+  --accent-a12: rgba(var(--accent-rgb), 0.12);
+  --accent-a14: rgba(var(--accent-rgb), 0.14);
+  --accent-a18: rgba(var(--accent-rgb), 0.18);
+  --accent-a25: rgba(var(--accent-rgb), 0.25);
+  --brand-dark: color-mix(in srgb, var(--accent) 42%, #000);
+  --brand-deep: color-mix(in srgb, var(--accent) 62%, #000);
   --green: #16a34a;
   --green-dim: rgba(22,163,74,0.14);
   --red: #dc2626;
@@ -46,7 +55,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 body.theme-light{
   --bg:#f0f2f5;--bg2:#ffffff;--bg3:#f5f6f8;--bg4:#eceef1;
   --border:#e2e5ea;--border2:#d0d5dd;--text:#1a1d23;--text2:#5a6070;--text3:#9099a8;
-  --accent:#b91c1c;--accent2:#dc2626;--accent-dim:rgba(185,28,28,0.12);
+  --accent-dim:rgba(var(--accent-rgb), 0.12);
   --green:#16a34a;--green-dim:rgba(22,163,74,0.12);--red:#dc2626;--red-dim:rgba(220,38,38,0.12);
   --blue:#1d4ed8;--blue-dim:rgba(29,78,216,0.12);--yellow:#d97706;--yellow-dim:rgba(217,119,6,0.14);
   --purple:#7c3aed;--purple-dim:rgba(124,58,237,0.12);--teal:#0d9488;--teal-dim:rgba(13,148,136,0.12);
@@ -69,7 +78,7 @@ input,select,textarea{font-family:var(--font);outline:none;}
 .nav-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.34);text-transform:uppercase;letter-spacing:.08em;padding:7px 14px 5px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer;transition:all .15s;border-left:3px solid transparent;border-radius:var(--radius);margin:0 8px 1px;}
 .nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
-.nav-item.active{background:rgba(185,28,28,.18);color:#ffffff;border-left-color:var(--accent);font-weight:600;padding-left:9px;}
+.nav-item.active{background:var(--accent-a18);color:#ffffff;border-left-color:var(--accent);font-weight:600;padding-left:9px;}
 .nav-item .nav-icon{font-size:14px;width:16px;text-align:center;}
 .sidebar-bottom{margin-top:auto;padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0;}
 .sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);}
@@ -85,12 +94,12 @@ body.theme-light .sidebar-user .u-role{color:#6b7280;}
 body.theme-light .nav-label{color:#9099a8;}
 body.theme-light .nav-item{color:#5a6070;}
 body.theme-light .nav-item:hover{background:#f0f2f5;color:#1a1d23;}
-body.theme-light .nav-item.active{background:rgba(185,28,28,.08);color:var(--accent);border-left-color:var(--accent);}
+body.theme-light .nav-item.active{background:var(--accent-a08);color:var(--accent);border-left-color:var(--accent);}
 body.theme-light .sidebar-bottom{border-top-color:#e2e5ea;}
 body.theme-light .sync-status{color:#9099a8;}
 body.theme-light .mobile-nav{background:#ffffff;border-top-color:#e2e5ea;box-shadow:0 -4px 14px rgba(0,0,0,.07);}
 body.theme-light .mobile-nav a{color:#9099a8;}
-body.theme-light .mobile-nav a.active{color:var(--accent);background:rgba(185,28,28,.07);}
+body.theme-light .mobile-nav a.active{color:var(--accent);background:var(--accent-a07);}
 
 #topbar{position:fixed;left:var(--sidebar-w);right:0;top:0;height:var(--topbar-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px;z-index:99;box-shadow:0 1px 4px rgba(0,0,0,.12);}
 .topbar-title{font-size:13px;font-weight:700;color:var(--text);flex:1;}
@@ -305,7 +314,7 @@ tr:last-child td{border-bottom:none;}
     padding:6px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:2px;min-height:54px;border-radius:var(--radius);text-decoration:none;
   }
-  .mobile-nav a.active{color:#f87171;background:rgba(185,28,28,.14);}
+  .mobile-nav a.active{color:var(--accent);background:var(--accent-a14);}
   .mobile-nav .ico{font-size:18px;line-height:1;}
   .kanban-wrap{padding-bottom:80px;}
 }
@@ -323,7 +332,7 @@ tr:last-child td{border-bottom:none;}
 
 /* PAGE TRANSITION BAR */
 #page-loader{position:fixed;top:0;left:0;right:0;height:3px;z-index:99999;pointer-events:none;background:transparent;}
-#page-loader-bar{height:100%;width:0%;background:var(--accent);border-radius:0 2px 2px 0;transition:width .25s ease;box-shadow:0 0 8px rgba(185,28,28,.6);}
+#page-loader-bar{height:100%;width:0%;background:var(--accent);border-radius:0 2px 2px 0;transition:width .25s ease;box-shadow:0 0 8px var(--accent-a25);}
 
 /* MISC */
 .mono{font-family:var(--mono);}

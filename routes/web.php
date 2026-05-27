@@ -145,6 +145,9 @@ Route::name('bms.')->group(function () {
         Route::delete('portal/{id}', [PortalController::class, 'destroy'])->name('portal.destroy')->middleware('bms.page:portal');
 
         Route::get('maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('bms.page:maintenance');
+        Route::post('maintenance/clear-data', [MaintenanceController::class, 'clearData'])->name('maintenance.clear-data')->middleware('bms.page:maintenance');
+        Route::post('maintenance/seed-demo', [MaintenanceController::class, 'seedDemo'])->name('maintenance.seed-demo')->middleware('bms.page:maintenance');
+        Route::post('maintenance/reset-demo', [MaintenanceController::class, 'resetDemo'])->name('maintenance.reset-demo')->middleware('bms.page:maintenance');
 
         Route::post('settings/theme', function (\Illuminate\Http\Request $req) {
             $theme = $req->input('theme', 'dark') === 'light' ? 'light' : 'dark';

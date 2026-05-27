@@ -5,10 +5,10 @@
 .dash{margin:-8px -4px 0;}
 .dash-hero{
   position:relative;border-radius:14px;padding:24px 28px;margin-bottom:18px;overflow:hidden;
-  background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 45%,#991b1b 100%);
-  border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 32px rgba(185,28,28,.25);
+  background:linear-gradient(135deg,var(--brand-dark) 0%,var(--accent) 45%,var(--brand-deep) 100%);
+  border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 32px var(--accent-a25);
 }
-body.theme-light .dash-hero{background:linear-gradient(135deg,#991b1b 0%,#b91c1c 50%,#dc2626 100%);box-shadow:0 8px 28px rgba(185,28,28,.18);}
+body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 0%,var(--accent) 50%,var(--accent2) 100%);box-shadow:0 8px 28px var(--accent-a18);}
 .dash-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);}
 .dash-hero::after{content:'';position:absolute;left:40%;bottom:-60px;width:280px;height:120px;border-radius:50%;background:rgba(0,0,0,.12);filter:blur(20px);}
 .dash-hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:end;}
@@ -30,7 +30,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,#991b1b 0%,#b91c1c
   background:var(--bg2);border:1px solid var(--border);text-decoration:none;color:inherit;
   transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.06);
 }
-.dash-action:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(185,28,28,.12);}
+.dash-action:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px var(--accent-a12);}
 .dash-action-ico{
   width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
   font-size:18px;flex-shrink:0;background:var(--accent-dim);
@@ -129,7 +129,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,#991b1b 0%,#b91c1c
   $stageColors = [
     'waiting' => '#64748b', 'designing' => '#3b82f6', 'approval' => '#f59e0b',
     'printing' => '#8b5cf6', 'fabrication' => '#f97316', 'ready' => '#22c55e',
-    'installed' => '#14b8a6', 'paid' => '#b91c1c',
+    'installed' => '#14b8a6', 'paid' => $bmsBrand['primary'] ?? ($bmsSettings['brand_color'] ?? '#b91c1c'),
   ];
   $totalRevenue = $jobs->where('paid', true)->sum('amount');
   $pendingRevenue = $jobs->where('paid', false)->sum('amount');
@@ -453,12 +453,13 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,#991b1b 0%,#b91c1c
   const text3 = light ? '#9ca3af' : '#5a6475';
   const border = light ? '#e5e7eb' : '#2a2f3a';
   const gridCol = light ? 'rgba(0,0,0,.04)' : 'rgba(255,255,255,.04)';
-  const accent = '#b91c1c';
+  const accent = @json($bmsBrand['primary'] ?? '#b91c1c');
+  const accentRgb = @json($bmsBrand['rgb'] ?? '185, 28, 28');
 
   const stageColors = {
     waiting:'#64748b', designing:'#3b82f6', approval:'#f59e0b',
     printing:'#8b5cf6', fabrication:'#f97316', ready:'#22c55e',
-    installed:'#14b8a6', paid:'#b91c1c'
+    installed:'#14b8a6', paid: accent
   };
 
   Chart.defaults.font.family = "'IBM Plex Sans',sans-serif";
@@ -476,8 +477,8 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,#991b1b 0%,#b91c1c
   // Revenue — smooth area chart
   const revCanvas = document.getElementById('chartRevenue');
   const revGrad = revCanvas.getContext('2d').createLinearGradient(0, 0, 0, 280);
-  revGrad.addColorStop(0, light ? 'rgba(185,28,28,.2)' : 'rgba(185,28,28,.35)');
-  revGrad.addColorStop(1, 'rgba(185,28,28,0)');
+  revGrad.addColorStop(0, light ? `rgba(${accentRgb}, 0.2)` : `rgba(${accentRgb}, 0.35)`);
+  revGrad.addColorStop(1, `rgba(${accentRgb}, 0)`);
 
   new Chart(revCanvas, {
     type: 'line',

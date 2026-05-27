@@ -5,6 +5,7 @@ namespace App\View\Composers;
 use App\Services\BmsSettingsService;
 use App\Support\BmsNavigation;
 use App\Support\BmsPermissions;
+use App\Support\BrandColors;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -34,6 +35,7 @@ class BmsLayoutComposer
         $view->with([
             'bmsUser' => $user,
             'bmsSettings' => $settings,
+            'bmsBrand' => BrandColors::fromSettings($settings),
             'bmsNav' => BmsNavigation::navForUser($user),
             'bmsBranches' => $settings['branches'] ?? [],
             'bmsBranch' => session('bms_branch', $user?->branch === 'all' ? 'all' : ($user?->branch ?? 'all')),
