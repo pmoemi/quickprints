@@ -51,7 +51,7 @@ Business Management System for print, signage, and fabrication shops. QuickPrint
 |-------|------------|
 | Backend | PHP 8.3, Laravel 13 |
 | Auth (API) | Laravel Sanctum |
-| Database | MySQL / MariaDB (recommended) or SQLite |
+| Database | MySQL / MariaDB |
 | PDF | barryvdh/laravel-dompdf |
 | Frontend | Blade templates with inline CSS (no build step) |
 | Charts | Chart.js (CDN on dashboard) |
@@ -62,7 +62,7 @@ Business Management System for print, signage, and fabrication shops. QuickPrint
 
 - PHP **8.3+** with extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `json`, `mbstring`, `openssl`, `pdo`, `tokenizer`, `xml`
 - Composer 2.x
-- MySQL/MariaDB (recommended) or SQLite
+- MySQL/MariaDB
 - Apache with `mod_rewrite` (XAMPP works out of the box)
 
 > **Node.js / npm are not required.** The BMS UI is served entirely from Blade views. Vite and Tailwind in this repo are unused Laravel boilerplate unless you extend the frontend pipeline yourself.
