@@ -27,6 +27,7 @@ use App\Http\Controllers\Bms\PayrollController;
 use App\Http\Controllers\Bms\PettyCashController;
 use App\Http\Controllers\Bms\PortalController;
 use App\Http\Controllers\Bms\PortalPublicController;
+use App\Http\Controllers\Bms\PwaController;
 use App\Http\Controllers\Bms\ProcurementController;
 use App\Http\Controllers\Bms\PurchaseOrderController;
 use App\Http\Controllers\Bms\QuoteController;
@@ -47,6 +48,8 @@ Route::get('portal/{token}', [PortalPublicController::class, 'show'])->name('por
 Route::get('portal/{token}/invoice/{job}', [PortalPublicController::class, 'invoice'])->name('portal.public.invoice');
 Route::get('portal/{token}/invoice/{job}/pdf', [PortalPublicController::class, 'invoicePdf'])->name('portal.public.invoice.pdf');
 Route::get('portal/{token}/receipt/{job}/pdf', [PortalPublicController::class, 'receiptPdf'])->name('portal.public.receipt.pdf');
+
+Route::get('manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
 
 Route::name('bms.')->group(function () {
     Route::middleware('guest')->group(function () {

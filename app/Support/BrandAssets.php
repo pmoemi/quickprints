@@ -36,6 +36,12 @@ class BrandAssets
         return self::publicUrl($settings['favicon_url'] ?? null);
     }
 
+    /** PWA / install icon — uploaded logo for the active theme, or built-in fallback. */
+    public static function pwaIconUrl(array $settings, string $theme = 'dark'): string
+    {
+        return self::logoForTheme($settings, $theme) ?? asset('pwa-icon.svg');
+    }
+
     public static function faviconMime(?string $url): string
     {
         $path = parse_url($url ?? '', PHP_URL_PATH) ?: '';

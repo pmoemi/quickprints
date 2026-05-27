@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#b91c1c">
+<meta name="theme-color" content="{{ \App\Support\BrandColors::fromSettings($settings)['primary'] }}">
 <title>{{ $settings['company_name'] ?? 'QuickPrints' }} — Sign In</title>
-@include('partials.favicon')
+@include('partials.favicon', ['settings' => $settings])
+@include('partials.pwa', ['settings' => $settings])
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#111318;--bg2:#1a1d24;--bg3:#222730;--border:#2e3340;--border2:#3a4050;--text:#e8eaf0;--text2:#9ba3b8;--text3:#5a6280;--accent:#b91c1c;--accent2:#dc2626;--red:#dc2626;--red-dim:rgba(220,38,38,0.14);--radius:6px;--font:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono','Courier New',monospace;}
+:root{--bg:#111318;--bg2:#1a1d24;--bg3:#222730;--border:#2e3340;--border2:#3a4050;--text:#e8eaf0;--text2:#9ba3b8;--text3:#5a6280;--accent:{{ \App\Support\BrandColors::fromSettings($settings)['primary'] }};--accent2:{{ \App\Support\BrandColors::fromSettings($settings)['secondary'] }};--red:#dc2626;--red-dim:rgba(220,38,38,0.14);--radius:6px;--font:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono','Courier New',monospace;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:var(--font);background:linear-gradient(135deg,#1e2227 0%,#2d333b 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--text);}
 a{color:inherit;text-decoration:none;}
@@ -18,6 +19,7 @@ input{font-family:var(--font);outline:none;}
 /* LOADER */
 #loading{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s ease;}
 #loading.fade-out{opacity:0;pointer-events:none;}
+.loader-icon{max-width:180px;max-height:64px;width:auto;height:auto;object-fit:contain;}
 .loader-logo{font-size:28px;font-weight:700;letter-spacing:2px;color:var(--accent);}
 .loader-logo span{color:var(--text2);}
 .loader-bar{width:200px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;}
@@ -52,8 +54,10 @@ input{font-family:var(--font);outline:none;}
 {{-- Loader overlay --}}
 <div id="loading">
   @php
+    $pwaIcon = \App\Support\BrandAssets::pwaIconUrl($settings, $settings['theme'] ?? 'dark');
     $parts = explode(' ', strtoupper($settings['company_name'] ?? 'QUICK PRINTS'), 2);
   @endphp
+  <img src="{{ $pwaIcon }}" alt="" class="loader-icon">
   <div class="loader-logo">{{ $parts[0] }}<span>{{ isset($parts[1]) ? ' '.$parts[1] : '' }}</span></div>
   <div class="loader-bar"><div class="loader-bar-fill"></div></div>
   <div class="loader-text" id="loader-text">Initializing...</div>

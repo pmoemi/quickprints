@@ -1,7 +1,6 @@
-const CACHE_NAME = 'quickprints-pwa-v1';
+const CACHE_NAME = 'quickprints-pwa-v2';
 const STATIC_ASSETS = [
-  new URL('manifest.webmanifest', self.registration.scope).toString(),
-  new URL('pwa-icon.svg', self.registration.scope).toString()
+  new URL('manifest.webmanifest', self.registration.scope).toString()
 ];
 
 self.addEventListener('install', (event) => {

@@ -7,11 +7,10 @@
 <meta name="theme-color" content="{{ $bmsBrand['primary'] ?? '#b91c1c' }}">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="QuickPrints">
+<meta name="apple-mobile-web-app-title" content="{{ $bmsSettings['company_name'] ?? 'QuickPrints' }}">
 <title>{{ $bmsSettings['company_name'] ?? config('app.name', 'QuickPrints') }} — BMS</title>
 @include('partials.favicon', ['settings' => $bmsSettings])
-<link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-<link rel="apple-touch-icon" href="{{ asset('pwa-icon.svg') }}">
+@include('partials.pwa', ['settings' => $bmsSettings])
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -310,7 +309,8 @@ tr:last-child td{border-bottom:none;}
 .mobile-nav{display:none;}
 .pwa-install-banner{display:none;}
 .pwa-install-copy{display:flex;align-items:flex-start;gap:10px;min-width:0;}
-.pwa-install-icon{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;}
+.pwa-install-icon{width:34px;height:34px;border-radius:10px;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;padding:3px;}
+.pwa-install-icon img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;}
 .pwa-install-title{font-size:13px;font-weight:700;color:var(--text);line-height:1.25;}
 .pwa-install-text{font-size:11px;color:var(--text2);line-height:1.35;margin-top:2px;}
 .pwa-install-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
@@ -395,6 +395,11 @@ tr:last-child td{border-bottom:none;}
 /* PAGE TRANSITION BAR */
 #page-loader{position:fixed;top:0;left:0;right:0;height:3px;z-index:99999;pointer-events:none;background:transparent;}
 #page-loader-bar{height:100%;width:0%;background:var(--accent);border-radius:0 2px 2px 0;transition:width .25s ease;box-shadow:0 0 8px var(--accent-a25);}
+#pwa-splash{position:fixed;inset:0;z-index:99998;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .35s ease;}
+#pwa-splash.show{display:flex;}
+#pwa-splash.fade-out{opacity:0;pointer-events:none;}
+#pwa-splash img{max-width:200px;max-height:72px;width:auto;height:auto;object-fit:contain;}
+#pwa-splash-label{font-size:13px;color:var(--text2);font-family:var(--mono);}
 
 /* MISC */
 .mono{font-family:var(--mono);}
@@ -573,7 +578,9 @@ tr:last-child td{border-bottom:none;}
 
 <div class="pwa-install-banner" id="pwa-install-banner" role="region" aria-label="Install QuickPrints app" aria-hidden="true">
   <div class="pwa-install-copy">
-    <div class="pwa-install-icon">QP</div>
+    <div class="pwa-install-icon">
+      <img src="{{ \App\Support\BrandAssets::pwaIconUrl($bmsSettings, $bmsSettings['theme'] ?? 'dark') }}" alt="">
+    </div>
     <div>
       <div class="pwa-install-title">Install QuickPrints</div>
       <div class="pwa-install-text" id="pwa-install-text">Add the app to your phone for faster access.</div>
@@ -589,7 +596,27 @@ tr:last-child td{border-bottom:none;}
 {{-- Page navigation progress bar --}}
 <div id="page-loader"><div id="page-loader-bar"></div></div>
 
+<div id="pwa-splash" aria-hidden="true">
+  <img src="{{ \App\Support\BrandAssets::pwaIconUrl($bmsSettings, $bmsSettings['theme'] ?? 'dark') }}" alt="">
+  <div id="pwa-splash-label">Loading…</div>
+</div>
+
 <script>
+(function() {
+  var splash = document.getElementById('pwa-splash');
+  if (!splash) return;
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!standalone) return;
+  splash.classList.add('show');
+  splash.setAttribute('aria-hidden', 'false');
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      splash.classList.add('fade-out');
+      splash.setAttribute('aria-hidden', 'true');
+      setTimeout(function() { splash.style.display = 'none'; }, 350);
+    }, 500);
+  });
+})();
 function toast(msg, type = 'info') {
   const el = document.createElement('div');
   el.className = `toast-item toast-${type}`;
