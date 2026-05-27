@@ -1,58 +1,259 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# QuickPrints BMS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Business Management System for print, signage, and fabrication shops. QuickPrints BMS brings sales, production, finance, HR, and client communication into one Laravel application with role-based access and multi-branch support.
 
-## About Laravel
+**Repository:** [github.com/pmoemi/quickprints](https://github.com/pmoemi/quickprints)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Sales & CRM
+- **Job tracker** — manage print jobs from intake to completion
+- **Kanban board** — visual workflow across production stages
+- **Quotes** — build and export PDF quotes
+- **Leads & follow-ups** — capture and nurture prospects
+- **Daily sales log** — record branch-level sales activity
+- **Commissions & sales targets** — track team performance
 
-## Learning Laravel
+### Production
+- **Designer, operator, fabrication, and delivery boards** — role-specific queues
+- **Artwork uploads** — attach files to jobs
+- **Services catalog** — configurable service items and pricing
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Finance
+- **Expenses (Opex), payroll, petty cash, and assets**
+- **General ledger** and **VAT reports**
+- **Bank & cash reconciliation**
+- **Procurement, suppliers, purchase orders, and recurring bills**
+- **PDF invoices, receipts, and financial reports** (DomPDF)
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### HR & Operations
+- **Staff management** with login accounts
+- **Attendance** and **leave requests** (approve/reject workflow)
+- **Payslips**
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Platform
+- **Multi-branch filtering** — users see data for their branch or all branches
+- **Role-based permissions** — Admin, GM, Operations, Sales, Designer, and more
+- **Client portal** — shareable token links for job status
+- **Internal messaging & notifications**
+- **Audit log** — track sensitive changes
+- **Settings** — company profile, branding, invoice design, email templates, finance config
+- **REST API** — Sanctum-authenticated endpoints at `/bms/api`
+- **Dark / light theme** per user
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | PHP 8.3, Laravel 13 |
+| Auth (API) | Laravel Sanctum |
+| Database | MySQL / MariaDB (recommended) or SQLite |
+| PDF | barryvdh/laravel-dompdf |
+| Frontend | Blade templates, Tailwind CSS 4, Vite |
+| Optional UI | Standalone offline HTML frontend at `/bms` |
+
+---
+
+## Requirements
+
+- PHP **8.3+** with extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `json`, `mbstring`, `openssl`, `pdo`, `tokenizer`, `xml`
+- Composer 2.x
+- Node.js 18+ and npm (for asset builds)
+- MySQL/MariaDB or SQLite
+- Apache with `mod_rewrite` (XAMPP works out of the box)
+
+---
+
+## Installation
+
+### 1. Clone the repository
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/pmoemi/quickprints.git
+cd quickprints
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Install dependencies
 
-## Contributing
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Environment setup
 
-## Code of Conduct
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Edit `.env` for your environment. For **XAMPP / MySQL**:
 
-## Security Vulnerabilities
+```env
+APP_NAME=QuickPrints
+APP_URL=http://localhost/quickprints
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=quickprints
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Create the database before migrating:
+
+```sql
+CREATE DATABASE quickprints CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 4. Database
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+The seeder loads demo company settings, sample jobs, clients, inventory, and staff accounts.
+
+### 5. Storage link
+
+```bash
+php artisan storage:link
+```
+
+### 6. Build frontend assets
+
+```bash
+npm run build
+```
+
+### 7. Run the application
+
+**Development (all services):**
+
+```bash
+composer dev
+```
+
+**Or with XAMPP Apache**, point the document root to the project folder (the included `.htaccess` rewrites requests to `public/`). Visit:
+
+```
+http://localhost/quickprints/login
+```
+
+**Or use Laravel's built-in server:**
+
+```bash
+php artisan serve
+```
+
+Then open `http://127.0.0.1:8000/login`.
+
+---
+
+## Demo Accounts
+
+After seeding, log in with any of these accounts (password for all: `Admin@2024`):
+
+| Role | Email |
+|------|-------|
+| Admin | admin@quickprints.co.ke |
+| General Manager | gm@quickprints.co.ke |
+| Operations Manager | ops@quickprints.co.ke |
+| Receptionist | grace@quickprints.co.ke |
+| Designer | david@quickprints.co.ke |
+| Sales | sarah@quickprints.co.ke |
+
+> Change these credentials before deploying to production.
+
+---
+
+## API
+
+The REST API is mounted at **`/bms/api`**.
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /bms/api/health` | Health check |
+| `GET /bms/api/settings/branding` | Public branding (no auth) |
+| `POST /bms/api/auth/login` | Obtain Sanctum token |
+| `GET /bms/api/auth/me` | Current user (auth required) |
+
+Authenticated routes expose CRUD for jobs, clients, staff, sales log, quotes, leads, inventory, and finance resources. Send the token as a Bearer header:
+
+```
+Authorization: Bearer {your-token}
+```
+
+---
+
+## Optional Offline Frontend
+
+A standalone HTML frontend can be served from `/bms`. Install or refresh it from the bundled source file:
+
+```bash
+php artisan bms:install-frontend
+```
+
+This copies `QuickPrints_BMS_Offline.html` to `public/bms/index.html`.
+
+---
+
+## Project Structure
+
+```
+app/
+  Http/Controllers/Bms/   # Web BMS controllers
+  Http/Controllers/Api/   # REST API controllers
+  Models/                 # Eloquent models
+  Support/                # Permissions, navigation, settings helpers
+database/
+  migrations/             # Schema
+  seeders/BmsDemoSeeder.php
+resources/views/          # Blade UI
+routes/
+  web.php                 # BMS web routes
+  api.php                 # API routes (prefix: bms/api)
+public/                   # Web root (via .htaccess rewrite)
+```
+
+---
+
+## Common Commands
+
+```bash
+# Run tests
+composer test
+
+# Clear caches after config changes
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+# Fresh database with demo data
+php artisan migrate:fresh --seed
+
+# Code style (Pint)
+./vendor/bin/pint
+```
+
+---
+
+## Deployment Notes
+
+1. Set `APP_ENV=production`, `APP_DEBUG=false`, and a strong `APP_KEY`.
+2. Configure real mail credentials (`MAIL_*`) for invoice and notification emails.
+3. Run `php artisan config:cache` and `php artisan route:cache` in production.
+4. Ensure `storage/` and `bootstrap/cache/` are writable by the web server.
+5. Use HTTPS and rotate all demo passwords.
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-source software licensed under the [MIT License](https://opensource.org/licenses/MIT).
