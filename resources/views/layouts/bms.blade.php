@@ -214,25 +214,7 @@ tr:last-child td{border-bottom:none;}
 .tl-action{font-size:13px;color:var(--text);}
 .tl-meta{font-size:11px;color:var(--text3);margin-top:2px;}
 
-/* DASHBOARD */
-.dashboard-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
-.dashboard-greeting{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.02em;}
-.dashboard-meta{font-size:12px;color:var(--text3);margin-top:4px;}
-.dashboard-actions{display:flex;gap:8px;flex-wrap:wrap;}
-.chart-card{padding:18px 18px 14px;}
-.chart-card .card-header{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
-.chart-card .card-title{font-size:12px;letter-spacing:.06em;}
-.chart-badge{font-size:10px;font-weight:600;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:99px;white-space:nowrap;}
-.chart-wrap{position:relative;height:260px;}
-.chart-wrap.sm{height:240px;}
-.chart-wrap.donut{height:260px;display:flex;align-items:center;justify-content:center;}
-.pipeline-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.pipeline-label{width:88px;font-size:11px;font-weight:600;color:var(--text2);text-transform:capitalize;flex-shrink:0;}
-.pipeline-track{flex:1;background:var(--bg4);border-radius:99px;height:22px;overflow:hidden;}
-.pipeline-fill{height:100%;border-radius:99px;display:flex;align-items:center;padding:0 8px;font-size:10px;color:#fff;font-weight:700;min-width:28px;transition:width .6s cubic-bezier(.4,0,.2,1);}
-.widget-list .activity-item{padding:10px 0;}
-.widget-list .activity-item:hover{background:var(--bg3);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:var(--radius);}
-.branch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--accent);}
+/* WIDGETS */
 .activity-item{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
 .activity-item:last-child{border-bottom:none;}
 .activity-icon{width:32px;height:32px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}

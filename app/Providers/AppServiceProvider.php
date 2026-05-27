@@ -18,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        View::composer(['layouts.bms', 'bms.*'], BmsLayoutComposer::class);
+        View::composer('*', BmsLayoutComposer::class);
 
         Blade::if('canBms', function (string $resource, string $action) {
             return BmsPermissions::allowed(Auth::user()?->role, $resource, $action);

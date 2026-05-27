@@ -16,6 +16,7 @@ class DashboardController extends BmsController
         $this->authorizeBms('jobs', 'read');
 
         $jobs = $this->scopeBranch(PrintJob::query())->get();
+        $clients = Client::query()->get()->keyBy('id');
         $salesLog = $this->scopeBranch(SalesLog::query())->get();
         $inventory = $this->scopeBranch(InventoryItem::query())->get();
 
@@ -81,6 +82,7 @@ class DashboardController extends BmsController
             'weekRevenue' => $weekRevenue,
             'prevWeekRevenue' => $prevWeekRevenue,
             'monthRevenue' => $monthRevenue,
+            'clients' => $clients,
         ]);
     }
 }

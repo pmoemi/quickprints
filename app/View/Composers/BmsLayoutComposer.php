@@ -16,6 +16,13 @@ class BmsLayoutComposer
 
     public function compose(View $view): void
     {
+        $name = $view->getName();
+        foreach (['auth.', 'emails.', 'pdf.', 'portal.public'] as $excluded) {
+            if (str_starts_with($name, $excluded) || $name === rtrim($excluded, '.')) {
+                return;
+            }
+        }
+
         $user = Auth::user();
         $settings = $this->settings->all();
         $role = $user?->role ?? 'Guest';
