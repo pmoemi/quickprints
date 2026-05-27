@@ -118,10 +118,28 @@ class SettingsController extends BmsController
     public function uploadLogo(Request $request): RedirectResponse
     {
         $this->authorizeBms('settings', 'update');
-        $path = $request->validate(['logo' => 'required|image|max:2048'])['logo']->store('branding', 'public');
-        $this->settings->update(['logo_url' => Storage::disk('public')->url($path)]);
 
-        return back()->with('success', 'Logo uploaded.');
+        $data = $request->validate([
+            'logo' => 'required|image|max:2048',
+            'variant' => 'required|in:dark,light,default',
+        ]);
+
+        $key = match ($data['variant']) {
+            'dark' => 'logo_url_dark',
+            'light' => 'logo_url_light',
+            default => 'logo_url',
+        };
+
+        $path = $data['logo']->store('branding', 'public');
+        $this->settings->update([$key => Storage::disk('public')->url($path)]);
+
+        $label = match ($data['variant']) {
+            'dark' => 'Dark mode logo uploaded.',
+            'light' => 'Light mode logo uploaded.',
+            default => 'Logo uploaded.',
+        };
+
+        return back()->with('success', $label);
     }
 
     public function uploadFavicon(Request $request): RedirectResponse

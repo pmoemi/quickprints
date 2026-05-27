@@ -24,7 +24,7 @@ class DocTemplateEngine
             'phone'   => $settings['phone'] ?? '',
             'email'   => $settings['email'] ?? '',
             'website' => $settings['website'] ?? '',
-            'logo'    => $settings['logo_url'] ?? '',
+            'logo'    => BrandAssets::logoForTheme($settings, 'light') ?? '',
         ];
 
         $this->cfg = array_merge([

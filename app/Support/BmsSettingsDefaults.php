@@ -22,6 +22,8 @@ class BmsSettingsDefaults
             'brand_color' => '#b91c1c',
             'brand_color_secondary' => '#dc2626',
             'logo_url' => null,
+            'logo_url_dark' => null,
+            'logo_url_light' => null,
             'favicon_url' => null,
             'invoice' => [
                 // Header & layout
@@ -288,6 +290,8 @@ class BmsSettingsDefaults
             'brand_color'            => $all['brand_color'],
             'brand_color_secondary'  => $all['brand_color_secondary'],
             'logo_url'               => $all['logo_url'],
+            'logo_url_dark'          => $all['logo_url_dark'],
+            'logo_url_light'         => $all['logo_url_light'],
             'favicon_url'            => $all['favicon_url'],
         ];
     }

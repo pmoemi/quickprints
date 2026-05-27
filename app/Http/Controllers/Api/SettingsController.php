@@ -23,6 +23,8 @@ class SettingsController extends Controller
             'brand_color' => $settings['brand_color'],
             'brand_color_secondary' => $settings['brand_color_secondary'],
             'logo_url' => $settings['logo_url'],
+            'logo_url_dark' => $settings['logo_url_dark'],
+            'logo_url_light' => $settings['logo_url_light'],
             'favicon_url' => $settings['favicon_url'],
         ]);
     }
@@ -205,7 +207,18 @@ class SettingsController extends Controller
     {
         $this->authorizeSettings($request, 'update');
 
-        return $this->uploadBrandAsset($request, 'logo', 'logo_url');
+        $data = $request->validate([
+            'logo' => 'required|image|mimes:jpeg,jpg,png,gif,webp,svg|max:2048',
+            'variant' => 'required|in:dark,light,default',
+        ]);
+
+        $key = match ($data['variant']) {
+            'dark' => 'logo_url_dark',
+            'light' => 'logo_url_light',
+            default => 'logo_url',
+        };
+
+        return $this->uploadBrandAsset($request, 'logo', $key);
     }
 
     public function uploadFavicon(Request $request): JsonResponse

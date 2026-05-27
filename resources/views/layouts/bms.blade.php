@@ -68,9 +68,10 @@ input,select,textarea{font-family:var(--font);outline:none;}
 /* LAYOUT */
 #sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:#1e2227;border-right:none;display:flex;flex-direction:column;z-index:100;overflow-y:auto;box-shadow:2px 0 8px rgba(0,0,0,.12);}
 #nav-menu{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:10px;}
-.sidebar-logo{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:#1e2227;}
-.sidebar-logo h2{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.5px;}
-.sidebar-logo p{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;font-family:var(--mono);}
+.sidebar-logo{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:#1e2227;}
+.sidebar-logo img{height:28px;max-width:150px;object-fit:contain;display:block}
+.sidebar-logo h2{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.5px;line-height:1.2}
+.sidebar-logo p{font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;font-family:var(--mono);}
 .sidebar-user{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:#1a1e23;}
 .sidebar-user .u-name{font-size:13px;font-weight:600;color:var(--text);}
 .sidebar-user .u-role{font-size:11px;color:var(--text3);margin-top:2px;}
@@ -350,10 +351,26 @@ tr:last-child td{border-bottom:none;}
 @stack('styles')
 </head>
 <body class="{{ ($bmsSettings['theme'] ?? 'dark') === 'light' ? 'theme-light' : '' }}">
+@php
+  use App\Support\BrandAssets;
+  $bmsTheme = ($bmsSettings['theme'] ?? 'dark') === 'light' ? 'light' : 'dark';
+  $bmsLogos = BrandAssets::logos($bmsSettings);
+  $bmsHasLogo = BrandAssets::hasLogo($bmsSettings);
+@endphp
 
 <div id="sidebar">
   <div class="sidebar-logo">
-    <h2>{{ strtoupper($bmsSettings['company_name'] ?? 'QUICK PRINTS') }}</h2>
+    @if($bmsHasLogo)
+      <img
+        id="bms-brand-logo"
+        src="{{ BrandAssets::logoForTheme($bmsSettings, $bmsTheme) }}"
+        alt="{{ $bmsSettings['company_name'] ?? 'Logo' }}"
+        data-logo-dark="{{ $bmsLogos['dark'] ?? '' }}"
+        data-logo-light="{{ $bmsLogos['light'] ?? '' }}"
+      >
+    @else
+      <h2>{{ strtoupper($bmsSettings['company_name'] ?? 'QUICK PRINTS') }}</h2>
+    @endif
     <p>{{ $bmsBranch === 'all' ? 'All Branches' : $bmsBranch }}</p>
   </div>
   <div class="sidebar-user">
@@ -502,6 +519,12 @@ function toggleTheme() {
   const isLight = body.classList.toggle('theme-light');
   const btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = isLight ? '🌙' : '☀';
+  const logo = document.getElementById('bms-brand-logo');
+  if (logo) {
+    const dark = logo.dataset.logoDark;
+    const light = logo.dataset.logoLight;
+    logo.src = isLight ? (light || dark) : (dark || light);
+  }
   fetch('{{ route('bms.settings.theme') }}', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },

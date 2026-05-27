@@ -42,6 +42,9 @@ use App\Http\Controllers\Bms\VatReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('portal/{token}', [PortalPublicController::class, 'show'])->name('portal.public');
+Route::get('portal/{token}/invoice/{job}', [PortalPublicController::class, 'invoice'])->name('portal.public.invoice');
+Route::get('portal/{token}/invoice/{job}/pdf', [PortalPublicController::class, 'invoicePdf'])->name('portal.public.invoice.pdf');
+Route::get('portal/{token}/receipt/{job}/pdf', [PortalPublicController::class, 'receiptPdf'])->name('portal.public.receipt.pdf');
 
 Route::name('bms.')->group(function () {
     Route::middleware('guest')->group(function () {
