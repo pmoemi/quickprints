@@ -58,17 +58,43 @@ abstract class BmsController extends Controller
         return $this->bmsSettings()['branches'] ?? BmsSettingsDefaults::all()['branches'];
     }
 
+    /**
+     * Convert a branch name to a short uppercase code.
+     * Multi-word → first letter of each word ("Ngong Road" → "NR").
+     * Single word → first 3 letters ("Westlands" → "WES", "CBD" → "CBD").
+     */
+    protected static function branchCode(string $branch): string
+    {
+        $branch = trim($branch);
+        $words = preg_split('/[\s\-_\/]+/', $branch, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($words) > 1) {
+            return strtoupper(implode('', array_map(fn($w) => $w[0], $words)));
+        }
+
+        return strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $branch), 0, 3));
+    }
+
     protected function nextJobId(?string $branchName = null): string
     {
-        $num = $this->settings->numbering('job_num');
-        $prefix = $this->settings->numbering('job_prefix');
-        $pad    = (int) $this->settings->numbering('job_pad');
-        $perBranch = (bool) $this->settings->numbering('job_per_branch');
+        $nb     = $this->settings->numbering('_all') ?? [];
+        $base   = $nb['job_prefix'] ?? 'QP';
+        $pad    = (int) ($nb['job_pad'] ?? 5);
+        $start  = (int) ($nb['job_start'] ?? 10001);
 
-        if ($perBranch && $branchName && $branchName !== 'all') {
-            // Use first 2 uppercase letters of branch as sub-prefix
-            $bp = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $branchName), 0, 2));
-            $prefix = $prefix.'-'.$bp;
+        // Always include branch code when a branch is given
+        $prefix = ($branchName && $branchName !== 'all')
+            ? $base.'-'.self::branchCode($branchName)
+            : $base;
+
+        // Per-prefix counter — look for the last job matching this exact prefix
+        $last = \App\Models\PrintJob::query()
+            ->where('id', 'like', $prefix.'-%')
+            ->orderByDesc('id')
+            ->value('id');
+
+        $num = $start;
+        if ($last && preg_match('/(\d+)$/', $last, $m)) {
+            $num = (int) $m[1] + 1;
         }
 
         return $prefix.'-'.str_pad((string) $num, $pad, '0', STR_PAD_LEFT);

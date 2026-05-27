@@ -23,19 +23,15 @@ class BmsSettingsService
      * Get a numbering setting by key, computing job_num from the DB max.
      * @return mixed
      */
+    /**
+     * @return mixed  Returns the full numbering array when $key === '_all'.
+     */
     public function numbering(string $key): mixed
     {
         $n = $this->all()['numbering'] ?? BmsSettingsDefaults::all()['numbering'];
 
-        if ($key === 'job_num') {
-            // Always compute from the actual last job ID to stay in sync
-            $last = \App\Models\PrintJob::query()->orderByDesc('id')->value('id');
-            $start = (int) ($n['job_start'] ?? 10001);
-            if ($last && preg_match('/(\d+)$/', $last, $m)) {
-                return (int) $m[1] + 1;
-            }
-
-            return $start;
+        if ($key === '_all') {
+            return $n;
         }
 
         return $n[$key] ?? null;

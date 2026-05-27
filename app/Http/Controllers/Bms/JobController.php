@@ -73,7 +73,7 @@ class JobController extends BmsController
             'sales_rep_id' => 'nullable|integer',
         ]);
 
-        $data['id'] = $this->nextJobId();
+        $data['id'] = $this->nextJobId($data['branch'] ?? null);
         $data['stage'] = $data['stage'] ?? 'waiting';
         $data['paid'] = false;
         $data['history'] = [['action' => 'Job created', 'by' => $request->user()->name, 'at' => now()->toIso8601String()]];

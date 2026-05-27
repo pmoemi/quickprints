@@ -52,11 +52,21 @@
       <tbody>
         @forelse($jobs as $job)
           @php $client = $clients[$job->client_id] ?? null; @endphp
+          @php
+            // Split ID into parts: e.g. QP-WES-00001 → prefix, branch, number
+            $idParts = explode('-', $job->id);
+            $idNum   = end($idParts);
+            $idHead  = implode('-', array_slice($idParts, 0, count($idParts) - 1));
+          @endphp
           <tr>
-            <td><span class="mono text-accent" style="font-size:12px;">{{ $job->id }}</span></td>
+            <td>
+              <a href="{{ route('bms.jobs.show', $job->id) }}" style="text-decoration:none;">
+                <span class="mono" style="font-size:11px;color:var(--text3);">{{ $idHead }}-</span><span class="mono" style="font-size:13px;font-weight:700;color:var(--accent);">{{ $idNum }}</span>
+              </a>
+            </td>
             <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $job->title }}</td>
             <td>{{ $client?->name ?? '—' }}</td>
-            <td><span style="font-size:12px;color:var(--text2);">{{ $job->branch }}</span></td>
+            <td><span style="font-size:11px;color:var(--text3);font-family:var(--mono);">{{ $job->branch }}</span></td>
             <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
             <td><span class="mono">{{ $bmsCurrency }} {{ number_format($job->amount) }}</span></td>
             <td>

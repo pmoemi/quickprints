@@ -18,9 +18,14 @@
   $invoicePrefix = $nb['invoice_prefix'] ?? 'INV';
   $receiptPrefix = $nb['receipt_prefix'] ?? 'RCP';
 
-  // Live examples
+  // Live examples — use first branch as sample
+  $firstBranch   = $bmsSettings['branches'][0] ?? 'Main';
+  $bWords = preg_split('/[\s\-_\/]+/', trim($firstBranch), -1, PREG_SPLIT_NO_EMPTY);
+  $exBranchCode  = count($bWords) > 1
+    ? strtoupper(implode('', array_map(fn($w) => $w[0], $bWords)))
+    : strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $firstBranch), 0, 3));
   $exJobNum  = max($jobStart, $nextJobNum ?? $jobStart);
-  $exJobId   = $jobPrefix.'-'.str_pad($exJobNum, $jobPad, '0', STR_PAD_LEFT);
+  $exJobId   = $jobPrefix.'-'.$exBranchCode.'-'.str_pad($exJobNum, $jobPad, '0', STR_PAD_LEFT);
   $exQuoteId = $quotePrefix.'-'.str_pad($nextQuoteNum ?? 1, $quotePad, '0', STR_PAD_LEFT);
   $exInvRef  = $invoicePrefix.'-'.$exJobId;
   $exRcpRef  = $receiptPrefix.'-'.$exJobId;
@@ -39,8 +44,8 @@
       </div>
 
       <div class="alert alert-info" style="margin-bottom:16px;font-size:12px;">
-        Job IDs are <strong>global</strong> — they increment across all branches to keep references unique.
-        New jobs created after saving will use the updated format. Existing IDs are unchanged.
+        Each branch has its own Job ID counter — e.g. <code>QP-WES-00001</code>, <code>QP-CBD-00001</code>.
+        Existing IDs are unchanged; new jobs use the updated prefix.
       </div>
 
       <div class="form-row cols-3">
@@ -65,26 +70,25 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="fld" style="display:flex;align-items:center;gap:10px;">
-          <label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="hidden" name="numbering[job_per_branch]" value="0">
-            <input type="checkbox" name="numbering[job_per_branch]" value="1"
-                   {{ $jobPerBranch ? 'checked' : '' }} onchange="updatePreviews()">
-            <span>Add branch code to Job ID</span>
-          </label>
-          <span style="font-size:11px;color:var(--text3);">e.g. QP-WL-10001 for Westlands</span>
-        </div>
-      </div>
-
       <div class="card" style="background:var(--bg3);margin-top:4px;">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Preview</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:12px;color:var(--text2);">Next Job ID</span>
-            <code id="prev-job" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);">{{ $exJobId }}</code>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Preview — per branch</div>
+        @php
+          $branches = $bmsSettings['branches'] ?? [];
+          $sampleBranches = array_slice($branches, 0, 4);
+        @endphp
+        @foreach($sampleBranches as $br)
+          @php
+            $words = preg_split('/[\s\-_\/]+/', trim($br), -1, PREG_SPLIT_NO_EMPTY);
+            $bc = count($words) > 1
+              ? strtoupper(implode('', array_map(fn($w) => $w[0], $words)))
+              : strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $br), 0, 3));
+            $exId = $jobPrefix.'-'.$bc.'-'.str_pad($jobStart, $jobPad, '0', STR_PAD_LEFT);
+          @endphp
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:12px;color:var(--text2);">{{ $br }}</span>
+            <code id="prev-job-{{ $loop->index }}" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);">{{ $exId }}</code>
           </div>
-        </div>
+        @endforeach
       </div>
     </div>
 
@@ -201,14 +205,12 @@ function pad(n, width) {
 function updatePreviews() {
   const jobPrefix  = document.querySelector('[name="numbering[job_prefix]"]')?.value || 'QP';
   const jobPad     = parseInt(document.querySelector('[name="numbering[job_pad]"]')?.value || 5);
-  const perBranch  = document.querySelector('[name="numbering[job_per_branch]"][type=checkbox]')?.checked;
   const invPrefix  = document.querySelector('[name="numbering[invoice_prefix]"]')?.value || 'INV';
   const rcpPrefix  = document.querySelector('[name="numbering[receipt_prefix]"]')?.value || 'RCP';
   const qPrefix    = document.querySelector('[name="numbering[quote_prefix]"]')?.value || 'QT';
   const qPad       = parseInt(document.querySelector('[name="numbering[quote_pad]"]')?.value || 4);
 
-  const branchSuffix = perBranch ? '-XX' : '';
-  const jobId  = jobPrefix + branchSuffix + '-' + pad(nextJob, jobPad);
+  const jobId  = jobPrefix + '-' + '{{ $exBranchCode }}' + '-' + pad(nextJob, jobPad);
   const quoteId = qPrefix + '-' + pad(nextQuote, qPad);
 
   const el = id => document.getElementById(id);

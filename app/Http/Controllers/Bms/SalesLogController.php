@@ -45,7 +45,7 @@ class SalesLogController extends BmsController
             'notes' => 'nullable|string',
         ]);
 
-        $jobId = $this->nextJobId();
+        $jobId = $this->nextJobId($data['branch'] ?? null);
         $data['id'] = $this->nextNumericId(SalesLog::class);
         $data['job_id'] = $jobId;
         $data['logged_by'] = $request->user()->name;
