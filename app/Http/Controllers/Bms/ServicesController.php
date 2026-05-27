@@ -9,12 +9,30 @@ use Illuminate\View\View;
 
 class ServicesController extends BmsController
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $items = ServiceItem::query()->orderBy('category')->orderBy('sort_order')->orderBy('name')->get();
-        $catalog = $items->groupBy('category');
+        $search = trim((string) $request->get('q', ''));
+        $category = trim((string) $request->get('cat', ''));
+        $perPage = 25;
 
-        return view('services.index', compact('catalog', 'items'));
+        $query = ServiceItem::query()->orderBy('category')->orderBy('sort_order')->orderBy('name');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%");
+            });
+        }
+
+        if ($category !== '') {
+            $query->where('category', $category);
+        }
+
+        $items = $query->paginate($perPage)->withQueryString();
+        $categories = ServiceItem::query()->distinct()->orderBy('category')->pluck('category');
+        $totalAll = ServiceItem::query()->count();
+
+        return view('services.index', compact('items', 'categories', 'totalAll', 'search', 'category'));
     }
 
     public function create(): View
