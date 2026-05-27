@@ -304,6 +304,18 @@ tr:last-child td{border-bottom:none;}
   .grid-4{grid-template-columns:1fr 1fr;}
   .grid-3{grid-template-columns:1fr 1fr;}
   .grid-2{grid-template-columns:1fr;}
+  /* Form rows collapse to single column */
+  .form-row.cols-2,.form-row.cols-3{grid-template-columns:1fr;}
+  /* Filter bar fills width */
+  .filter-bar{flex-direction:column;align-items:stretch;}
+  .search-input{min-width:0;width:100%;}
+  .filter-select{width:100%;}
+  /* Tables: allow horizontal scroll, tighten cells */
+  td,th{padding:8px 10px;font-size:12px;}
+  .page-title{font-size:17px;}
+  .page-header{margin-bottom:12px;}
+  /* Card padding tighter */
+  .card{padding:12px;}
   .mobile-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:120;
     display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;

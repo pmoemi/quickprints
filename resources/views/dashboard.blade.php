@@ -114,11 +114,41 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
   .dash-bottom{grid-template-columns:1fr;}
 }
 @media(max-width:768px){
-  .dash-hero-inner{grid-template-columns:1fr;}
-  .dash-hero-metrics{justify-content:flex-start;}
+  /* Hero: compact padding + smaller fonts */
+  .dash-hero{padding:16px 16px;}
+  .dash-hero-inner{grid-template-columns:1fr;gap:12px;}
+  .dash-hero h1{font-size:10px;margin-bottom:3px;}
+  .dash-hero-title{font-size:17px;}
+  .dash-hero-sub{font-size:11px;margin-top:4px;}
+  .dash-hero-metrics{justify-content:flex-start;gap:16px;flex-wrap:wrap;}
   .dash-hero-metric{text-align:left;}
-  .dash-actions{grid-template-columns:1fr 1fr;}
+  .dash-hero-metric .val{font-size:16px;}
+  .dash-hero-metric .lbl{font-size:9px;}
+  /* Actions: 2 columns on mobile */
+  .dash-actions{grid-template-columns:1fr 1fr;gap:8px;}
+  .dash-action{padding:10px 12px;gap:8px;}
+  .dash-action-ico{width:32px;height:32px;font-size:14px;border-radius:8px;}
+  .dash-action-txt{font-size:12px;}
+  .dash-action-sub{font-size:10px;}
+  /* Flow stages */
   .dash-flow-stages{grid-template-columns:repeat(2,1fr);}
+  /* Bottom grid already handled by 1100px rule, ensure on small phones */
+  .dash-bottom{grid-template-columns:1fr;}
+  .dash-chart{height:200px;}
+  .dash-chart.sm{height:160px;}
+  /* Rank amounts: prevent overflow */
+  .dash-rank-amt{font-size:10px;}
+  /* Panel padding tighter */
+  .dash-panel{padding:14px;}
+}
+@media(max-width:480px){
+  .dash-hero{padding:14px 14px;}
+  .dash-hero-title{font-size:15px;}
+  .dash-hero-metric .val{font-size:14px;}
+  .dash-hero-metrics{gap:12px;}
+  .dash-actions{grid-template-columns:1fr 1fr;gap:6px;}
+  .dash-action-sub{display:none;}
+  .dash-action-ico{width:28px;height:28px;font-size:13px;}
 }
 </style>
 @endpush
