@@ -9,7 +9,8 @@
   $showVat = $engine->get('show_vat_column', true);
   $accent  = $engine->accent();
 
-  $docRef  = e($job->id)
+  $invPrefix = $settings['numbering']['invoice_prefix'] ?? 'INV';
+  $docRef  = e($invPrefix . '-' . $job->id)
     . '<br>' . now()->format('d M Y')
     . ($job->deadline ? '<br>Due: ' . $job->deadline->format('d M Y') : '');
   $docMeta = $job->paid

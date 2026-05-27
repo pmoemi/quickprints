@@ -18,6 +18,21 @@ class BmsSettingsDefaults
             'currency' => 'KES',
             'currency_symbol' => 'KSh',
             'payment_methods' => ['Mpesa', 'Cash', 'Bank Transfer', 'Cheque', 'Credit'],
+            'numbering' => [
+                // Job IDs  — e.g.  QP-10001
+                'job_prefix'      => 'QP',
+                'job_start'       => 10001,
+                'job_pad'         => 5,
+                'job_per_branch'  => false,   // if true, prefix becomes QP-WL-, QP-CBD- etc.
+                // Quotes  — e.g.  QT-0001
+                'quote_prefix'    => 'QT',
+                'quote_start'     => 1,
+                'quote_pad'       => 4,
+                // Invoices — display prefix on the document
+                'invoice_prefix'  => 'INV',
+                // Receipts — display prefix on the document
+                'receipt_prefix'  => 'RCP',
+            ],
             'vat_rate' => 16,
             'branches' => ['Westlands', 'CBD', 'Eastleigh', 'Karen', 'Ngong Road'],
             'brand_color' => '#b91c1c',

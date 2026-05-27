@@ -58,15 +58,45 @@ abstract class BmsController extends Controller
         return $this->bmsSettings()['branches'] ?? BmsSettingsDefaults::all()['branches'];
     }
 
-    protected function nextJobId(): string
+    protected function nextJobId(?string $branchName = null): string
     {
-        $last = \App\Models\PrintJob::query()->orderByDesc('id')->value('id');
-        $num = 10001;
-        if ($last && preg_match('/(\d+)$/', $last, $m)) {
-            $num = (int) $m[1] + 1;
+        $num = $this->settings->numbering('job_num');
+        $prefix = $this->settings->numbering('job_prefix');
+        $pad    = (int) $this->settings->numbering('job_pad');
+        $perBranch = (bool) $this->settings->numbering('job_per_branch');
+
+        if ($perBranch && $branchName && $branchName !== 'all') {
+            // Use first 2 uppercase letters of branch as sub-prefix
+            $bp = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $branchName), 0, 2));
+            $prefix = $prefix.'-'.$bp;
         }
 
-        return 'QP-'.str_pad((string) $num, 5, '0', STR_PAD_LEFT);
+        return $prefix.'-'.str_pad((string) $num, $pad, '0', STR_PAD_LEFT);
+    }
+
+    /** Format a quote ID for display: e.g. QT-0003 */
+    protected function formatQuoteRef(int $id): string
+    {
+        $prefix = $this->settings->numbering('quote_prefix');
+        $pad    = (int) $this->settings->numbering('quote_pad');
+
+        return $prefix.'-'.str_pad((string) $id, $pad, '0', STR_PAD_LEFT);
+    }
+
+    /** Format a job ID as an invoice reference for display: e.g. INV-QP-10001 */
+    public static function invoiceRef(string $jobId, array $settings): string
+    {
+        $prefix = $settings['numbering']['invoice_prefix'] ?? 'INV';
+
+        return $prefix.'-'.$jobId;
+    }
+
+    /** Format a job ID as a receipt reference for display: e.g. RCP-QP-10001 */
+    public static function receiptRef(string $jobId, array $settings): string
+    {
+        $prefix = $settings['numbering']['receipt_prefix'] ?? 'RCP';
+
+        return $prefix.'-'.$jobId;
     }
 
     protected function nextNumericId(string $modelClass): int

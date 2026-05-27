@@ -282,6 +282,47 @@ class SettingsController extends BmsController
         return view('settings/finance', ['settings' => $this->bmsSettings()]);
     }
 
+    public function numbering(): View
+    {
+        $this->authorizeBms('settings', 'read');
+        $settings   = $this->bmsSettings();
+        $nb         = $settings['numbering'] ?? [];
+        $lastJob    = \App\Models\PrintJob::query()->orderByDesc('id')->value('id');
+        $jobStart   = (int) ($nb['job_start'] ?? 10001);
+        $nextJobNum = $jobStart;
+        if ($lastJob && preg_match('/(\d+)$/', $lastJob, $m)) {
+            $nextJobNum = (int) $m[1] + 1;
+        }
+        $nextQuoteNum = (\App\Models\Quote::query()->max('id') ?? 0) + 1;
+        $totalJobs   = \App\Models\PrintJob::query()->count();
+        $totalQuotes = \App\Models\Quote::query()->count();
+
+        return view('settings/numbering', compact('settings', 'nextJobNum', 'nextQuoteNum', 'totalJobs', 'totalQuotes'));
+    }
+
+    public function updateNumbering(Request $request): RedirectResponse
+    {
+        $this->authorizeBms('settings', 'update');
+        $data = $request->validate([
+            'numbering.job_prefix'      => 'required|string|max:10|alpha_num',
+            'numbering.job_start'       => 'required|integer|min:1|max:9999999',
+            'numbering.job_pad'         => 'required|integer|min:3|max:8',
+            'numbering.job_per_branch'  => 'nullable',
+            'numbering.quote_prefix'    => 'required|string|max:10|alpha_num',
+            'numbering.quote_pad'       => 'required|integer|min:3|max:8',
+            'numbering.invoice_prefix'  => 'nullable|string|max:10',
+            'numbering.receipt_prefix'  => 'nullable|string|max:10',
+        ]);
+
+        // Flatten nested 'numbering' array from dot notation
+        $nb = $data['numbering'];
+        $nb['job_per_branch'] = (bool) ($request->input('numbering.job_per_branch') ?? false);
+
+        $this->settings->update(['numbering' => $nb]);
+
+        return back()->with('success', 'Numbering settings saved.');
+    }
+
     public function updateFinance(Request $request): RedirectResponse
     {
         $this->authorizeBms('settings', 'update');

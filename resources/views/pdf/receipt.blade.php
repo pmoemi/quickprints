@@ -6,7 +6,8 @@
   $vatAmt  = $job->amount * $vatRate / (100 + $vatRate);
   $net     = $job->amount - $vatAmt;
 
-  $docRef  = 'Ref: ' . e($job->id) . '<br>' . now()->format('d M Y');
+  $rcpPrefix = $settings['numbering']['receipt_prefix'] ?? 'RCP';
+  $docRef  = e($rcpPrefix . '-' . $job->id) . '<br>' . now()->format('d M Y');
   $docMeta = '<div class="receipt-stamp">PAID</div>';
 @endphp
 <!DOCTYPE html>

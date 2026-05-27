@@ -192,6 +192,8 @@ Route::name('bms.')->group(function () {
             Route::post('roles', [SettingsController::class, 'storeRole'])->name('roles.store');
             Route::put('roles/{name}', [SettingsController::class, 'updateRole'])->name('roles.update')->where('name', '.*');
             Route::delete('roles/{name}', [SettingsController::class, 'destroyRole'])->name('roles.destroy')->where('name', '.*');
+            Route::get('numbering', [SettingsController::class, 'numbering'])->name('numbering');
+            Route::put('numbering', [SettingsController::class, 'updateNumbering'])->name('numbering.update');
         });
     });
 });

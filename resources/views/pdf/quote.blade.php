@@ -11,7 +11,9 @@
   $validity = $engine->get('quote_validity_days', 30);
 
   $statusBadge = '<span class="badge badge-' . ($quote->status ?? 'draft') . '">' . strtoupper($quote->status ?? 'DRAFT') . '</span>';
-  $docRef = '#QT-' . str_pad($quote->id, 4, '0', STR_PAD_LEFT)
+  $qPrefix = $settings['numbering']['quote_prefix'] ?? 'QT';
+  $qPad    = (int) ($settings['numbering']['quote_pad'] ?? 4);
+  $docRef = '#' . $qPrefix . '-' . str_pad($quote->id, $qPad, '0', STR_PAD_LEFT)
     . '<br>' . ($quote->date ? $quote->date->format('d M Y') : now()->format('d M Y'))
     . '<br>Valid: ' . $validity . ' days';
 @endphp
@@ -40,7 +42,7 @@
     <div class="info-col">
       <div class="info-title">Quotation Info</div>
       <div class="info-value">
-        <strong>Ref:</strong> QT-{{ str_pad($quote->id, 4, '0', STR_PAD_LEFT) }}<br>
+        <strong>Ref:</strong> {{ $qPrefix }}-{{ str_pad($quote->id, $qPad, '0', STR_PAD_LEFT) }}<br>
         <strong>Date:</strong> {{ $quote->date ? $quote->date->format('d M Y') : now()->format('d M Y') }}<br>
         @if($quote->prepared_by)<strong>Prepared by:</strong> {{ $quote->prepared_by }}<br>@endif
         <strong>Valid:</strong> {{ $validity }} days from date

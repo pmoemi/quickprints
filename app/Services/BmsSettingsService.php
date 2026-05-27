@@ -19,6 +19,28 @@ class BmsSettingsService
         return BmsSettingsDefaults::merge($row->data ?? []);
     }
 
+    /**
+     * Get a numbering setting by key, computing job_num from the DB max.
+     * @return mixed
+     */
+    public function numbering(string $key): mixed
+    {
+        $n = $this->all()['numbering'] ?? BmsSettingsDefaults::all()['numbering'];
+
+        if ($key === 'job_num') {
+            // Always compute from the actual last job ID to stay in sync
+            $last = \App\Models\PrintJob::query()->orderByDesc('id')->value('id');
+            $start = (int) ($n['job_start'] ?? 10001);
+            if ($last && preg_match('/(\d+)$/', $last, $m)) {
+                return (int) $m[1] + 1;
+            }
+
+            return $start;
+        }
+
+        return $n[$key] ?? null;
+    }
+
     /** @param  array<string, mixed>  $payload */
     public function update(array $payload): array
     {
@@ -39,6 +61,10 @@ class BmsSettingsService
                 $merged['notifications'] = $payload['email_settings']['notifications'];
             }
             $payload['email_settings'] = $merged;
+        }
+
+        if (isset($payload['numbering']) && is_array($payload['numbering'])) {
+            $payload['numbering'] = array_merge($current['numbering'] ?? [], $payload['numbering']);
         }
 
         if (isset($payload['email_templates']) && is_array($payload['email_templates'])) {

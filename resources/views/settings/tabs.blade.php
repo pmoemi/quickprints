@@ -7,7 +7,8 @@
     ['route' => 'bms.settings.invoice',  'label' => 'Invoice'],
     ['route' => 'bms.settings.email',           'label' => 'Email'],
     ['route' => 'bms.settings.email-templates', 'label' => 'Email Templates'],
-    ['route' => 'bms.settings.roles',           'label' => 'Roles'],
+    ['route' => 'bms.settings.roles',      'label' => 'Roles'],
+    ['route' => 'bms.settings.numbering', 'label' => 'Numbering'],
   ];
 @endphp
 <div class="tabs">
