@@ -75,6 +75,13 @@
       </div>
     </div>
 
+    <div class="form-row">
+      <div class="fld">
+        <label>Notes</label>
+        <textarea name="notes" rows="2" placeholder="Additional notes about this lead…">{{ old('notes', $lead->notes) }}</textarea>
+      </div>
+    </div>
+
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <a href="{{ route('bms.leads.index') }}" class="btn btn-secondary">Cancel</a>
       <button type="submit" class="btn btn-primary">{{ $editing ? 'Update Lead' : 'Create Lead' }}</button>

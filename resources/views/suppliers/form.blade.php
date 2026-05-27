@@ -52,6 +52,13 @@
         </select>
       </div>
     </div>
+    <div class="form-row">
+      <div class="fld">
+        <label>Address</label>
+        <input type="text" name="address" value="{{ old('address', $item->address) }}" placeholder="Physical / postal address">
+      </div>
+    </div>
+
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <a href="{{ route('bms.suppliers.index') }}" class="btn btn-secondary">Cancel</a>
       <button type="submit" class="btn btn-primary">{{ $editing ? 'Update Supplier' : 'Add Supplier' }}</button>

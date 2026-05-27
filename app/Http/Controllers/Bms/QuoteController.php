@@ -104,18 +104,21 @@ class QuoteController extends BmsController
             'status' => 'nullable|string|max:40',
             'notes' => 'nullable|string',
             'items' => 'nullable|array',
-            'items.*.description' => 'nullable|string',
+            'items.*.desc' => 'nullable|string',       // form field name
+            'items.*.description' => 'nullable|string', // backward compat (saved JSON)
             'items.*.qty' => 'nullable|numeric',
             'items.*.unit_price' => 'nullable|numeric',
         ]);
 
         $items = [];
         foreach ($data['items'] ?? [] as $row) {
-            if (empty($row['description'])) {
+            // Accept both 'desc' (form) and 'description' (stored JSON)
+            $desc = trim((string) ($row['desc'] ?? $row['description'] ?? ''));
+            if ($desc === '') {
                 continue;
             }
             $items[] = [
-                'description' => $row['description'],
+                'description' => $desc,
                 'qty' => (float) ($row['qty'] ?? 1),
                 'unit_price' => (float) ($row['unit_price'] ?? 0),
             ];
