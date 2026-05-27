@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bms;
 
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\BmsPermissions;
 use App\Support\BmsSettingsDefaults;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -179,9 +180,8 @@ class StaffController extends BmsController
     {
         $this->authorizeBms('staff', 'update');
 
-        // Only Admin can reset passwords
-        if (auth()->user()?->role !== 'Admin') {
-            abort(403, 'Only Admin users can reset staff passwords.');
+        if (! BmsPermissions::canResetStaffPasswords(auth()->user()?->role)) {
+            abort(403, 'You do not have permission to reset staff passwords.');
         }
 
         $request->validate([

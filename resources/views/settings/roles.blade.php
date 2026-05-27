@@ -121,18 +121,26 @@
             </tbody>
           </table>
 
-          {{-- All-branches toggle --}}
-          <div style="padding:12px 0;border-top:1px solid var(--border);margin-bottom:20px;">
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+          {{-- Special capabilities --}}
+          <div style="padding:12px 0;border-top:1px solid var(--border);margin-bottom:8px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px;">Special Capabilities</div>
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:10px;display:flex;">
               <input type="checkbox" name="allBranches" value="1" {{ ($rd['allBranches'] ?? false) ? 'checked' : '' }}>
               <span>
                 <strong>All Branches Access</strong>
                 <span style="color:var(--text3);"> — can view and switch between all branches</span>
               </span>
             </label>
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;display:flex;">
+              <input type="checkbox" name="resetStaffPasswords" value="1" {{ ($rd['resetStaffPasswords'] ?? false) ? 'checked' : '' }}>
+              <span>
+                <strong>Reset Staff Passwords</strong>
+                <span style="color:var(--text3);"> — can reset login passwords for other staff members</span>
+              </span>
+            </label>
           </div>
 
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;margin-top:16px;">
             <button type="submit" class="btn btn-primary">Save Changes</button>
             <a href="{{ route('bms.settings.roles') }}" class="btn btn-secondary">Cancel</a>
           </div>
@@ -187,17 +195,25 @@
             </tbody>
           </table>
 
-          <div style="padding:12px 0;border-top:1px solid var(--border);margin-bottom:20px;">
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+          <div style="padding:12px 0;border-top:1px solid var(--border);margin-bottom:8px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px;">Special Capabilities</div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:10px;">
               <input type="checkbox" name="allBranches" value="1">
               <span>
                 <strong>All Branches Access</strong>
                 <span style="color:var(--text3);"> — can view and switch between all branches</span>
               </span>
             </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+              <input type="checkbox" name="resetStaffPasswords" value="1">
+              <span>
+                <strong>Reset Staff Passwords</strong>
+                <span style="color:var(--text3);"> — can reset login passwords for other staff members</span>
+              </span>
+            </label>
           </div>
 
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;margin-top:16px;">
             <button type="submit" class="btn btn-primary">Create Role</button>
             <a href="{{ route('bms.settings.roles') }}" class="btn btn-secondary">Cancel</a>
           </div>

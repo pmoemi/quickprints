@@ -157,7 +157,8 @@ class BmsSettingsDefaults
                         'reports'    => ['read'],
                         'settings'   => ['read', 'write'],
                     ],
-                    'allBranches' => true,
+                    'allBranches'          => true,
+                    'resetStaffPasswords'  => false,
                 ],
                 'Operations Manager' => [
                     'perms' => [
@@ -166,7 +167,8 @@ class BmsSettingsDefaults
                         'operations' => ['read', 'write', 'create'],
                         'reports'    => ['read'],
                     ],
-                    'allBranches' => false,
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Receptionist' => [
                     'perms' => [
@@ -175,7 +177,8 @@ class BmsSettingsDefaults
                         'clients' => ['read', 'write', 'create'],
                         'reports' => ['read'],
                     ],
-                    'allBranches' => false,
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Sales' => [
                     'perms' => [
@@ -184,31 +187,38 @@ class BmsSettingsDefaults
                         'clients' => ['read', 'write', 'create'],
                         'reports' => ['read'],
                     ],
-                    'allBranches' => false,
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Designer' => [
-                    'perms' => ['operations' => ['read', 'write']],
-                    'allBranches' => false,
+                    'perms'               => ['operations' => ['read', 'write']],
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Operator' => [
-                    'perms' => ['operations' => ['read', 'write']],
-                    'allBranches' => false,
+                    'perms'               => ['operations' => ['read', 'write']],
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Fabrication Staff' => [
-                    'perms' => ['operations' => ['read', 'write']],
-                    'allBranches' => false,
+                    'perms'               => ['operations' => ['read', 'write']],
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Welder' => [
-                    'perms' => ['operations' => ['read', 'write']],
-                    'allBranches' => false,
+                    'perms'               => ['operations' => ['read', 'write']],
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'CNC Operator' => [
-                    'perms' => ['operations' => ['read', 'write']],
-                    'allBranches' => false,
+                    'perms'               => ['operations' => ['read', 'write']],
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
                 'Laser Operator' => [
-                    'perms' => ['operations' => ['read', 'write']],
-                    'allBranches' => false,
+                    'perms'               => ['operations' => ['read', 'write']],
+                    'allBranches'         => false,
+                    'resetStaffPasswords' => false,
                 ],
             ],
         ];

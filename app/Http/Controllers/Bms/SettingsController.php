@@ -494,8 +494,9 @@ class SettingsController extends BmsController
         }
 
         $roles[$name] = [
-            'perms'       => $this->parsePerms($request),
-            'allBranches' => $request->boolean('allBranches'),
+            'perms'                => $this->parsePerms($request),
+            'allBranches'          => $request->boolean('allBranches'),
+            'resetStaffPasswords'  => $request->boolean('resetStaffPasswords'),
         ];
         $this->settings->update(['roles' => $roles]);
 
@@ -521,8 +522,9 @@ class SettingsController extends BmsController
         }
 
         $roleData = [
-            'perms'       => $this->parsePerms($request),
-            'allBranches' => $request->boolean('allBranches'),
+            'perms'               => $this->parsePerms($request),
+            'allBranches'         => $request->boolean('allBranches'),
+            'resetStaffPasswords' => $request->boolean('resetStaffPasswords'),
         ];
 
         if ($newName !== $name) {

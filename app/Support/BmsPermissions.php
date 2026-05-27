@@ -148,6 +148,25 @@ class BmsPermissions
         ];
     }
 
+    /**
+     * Returns true if the given role is allowed to reset staff passwords.
+     * Admin always has this capability; other roles need `resetStaffPasswords = true`.
+     */
+    public static function canResetStaffPasswords(?string $role): bool
+    {
+        if (! $role) {
+            return false;
+        }
+
+        if ($role === 'Admin') {
+            return true;
+        }
+
+        $dynamicRoles = BmsSettingsDefaults::roles();
+
+        return (bool) ($dynamicRoles[$role]['resetStaffPasswords'] ?? false);
+    }
+
     public static function actionFromMethod(string $method): string
     {
         return match (strtoupper($method)) {

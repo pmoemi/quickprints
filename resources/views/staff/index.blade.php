@@ -72,7 +72,7 @@
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
               <a href="{{ route('bms.staff.edit', $member->id) }}" class="btn btn-secondary btn-sm">Edit</a>
-              @if(auth()->user()?->role === 'Admin' && $member->user_id)
+              @if(\App\Support\BmsPermissions::canResetStaffPasswords(auth()->user()?->role) && $member->user_id)
                 <button type="button" class="btn btn-secondary btn-sm"
                         onclick="togglePwReset({{ $member->id }})"
                         id="btn-pw-{{ $member->id }}"
@@ -88,7 +88,7 @@
         </tr>
 
         {{-- Inline password reset row (hidden by default) --}}
-        @if(auth()->user()?->role === 'Admin' && $member->user_id)
+        @if(\App\Support\BmsPermissions::canResetStaffPasswords(auth()->user()?->role) && $member->user_id)
           <tr id="pw-row-{{ $member->id }}" style="display:none;background:var(--bg3);">
             <td colspan="7" style="padding:12px 16px;">
               <form method="POST" action="{{ route('bms.staff.reset-password', $member->id) }}"
