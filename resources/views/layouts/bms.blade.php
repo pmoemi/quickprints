@@ -313,13 +313,11 @@ tr:last-child td{border-bottom:none;}
     display:flex;align-items:center;justify-content:center;
     position:absolute;top:10px;right:10px;
     width:28px;height:28px;border-radius:50%;
-    background:rgba(255,255,255,.1);border:none;
-    color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;
-    line-height:1;z-index:2;
+    background:var(--accent);border:none;
+    color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+    line-height:1;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.25);
   }
-  #sidebar-close:hover{background:rgba(255,255,255,.2);color:#fff;}
-  body.theme-light #sidebar-close{background:rgba(0,0,0,.07);color:#555;}
-  body.theme-light #sidebar-close:hover{background:rgba(0,0,0,.13);color:#222;}
+  #sidebar-close:hover{opacity:.85;}
   .sidebar-logo{position:relative;padding-right:44px;}
   #main{padding:14px 12px 96px;}
   #topbar{padding:0 8px;gap:6px;left:0;}
