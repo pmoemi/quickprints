@@ -14,9 +14,27 @@ class StaffController extends BmsController
     public function index(): View
     {
         $this->authorizeBms('staff', 'read');
-        $staff = $this->scopeBranch(Staff::query())->orderBy('name')->get();
 
-        return view('staff.index', compact('staff'));
+        $branch = request('branch', $this->branchFilter() ?? 'all');
+        $q = trim((string) request('q', ''));
+
+        $query = Staff::query()->orderBy('name');
+
+        if ($branch !== 'all') {
+            $query->where('branch', $branch);
+        }
+        if ($q !== '') {
+            $query->where(function ($sq) use ($q) {
+                $sq->where('name', 'like', "%{$q}%")
+                   ->orWhere('email', 'like', "%{$q}%")
+                   ->orWhere('role', 'like', "%{$q}%");
+            });
+        }
+
+        $staff = $query->get();
+        $branches = array_merge(['all'], $this->branchNames());
+
+        return view('staff.index', compact('staff', 'branch', 'branches', 'q'));
     }
 
     public function create(): View

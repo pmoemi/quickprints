@@ -4,10 +4,31 @@
 <div class="page-header">
   <div>
     <div class="page-title">Staff</div>
-    <div class="page-subtitle">{{ $staff->count() }} member(s)</div>
+    <div class="page-subtitle">{{ $staff->count() }} member(s){{ $branch !== 'all' ? ' · '.$branch.' branch' : '' }}</div>
   </div>
   <a href="{{ route('bms.staff.create') }}" class="btn btn-primary">+ Add Staff</a>
 </div>
+
+<form method="GET" action="{{ route('bms.staff.index') }}" class="filter-bar">
+  <input class="search-input" name="q" value="{{ $q }}" placeholder="Search name, email, role…" autocomplete="off">
+  <select class="filter-select" name="branch" onchange="this.form.submit()">
+    <option value="all" @selected($branch === 'all')>All Branches</option>
+    @foreach($branches as $br)
+      @if($br !== 'all')
+        <option value="{{ $br }}" @selected($branch === $br)>{{ $br }}</option>
+      @endif
+    @endforeach
+  </select>
+  @if($q || $branch !== 'all')
+    <a href="{{ route('bms.staff.index') }}" class="btn btn-secondary btn-sm">Clear</a>
+  @endif
+</form>
+
+@if($branch !== 'all')
+  <div class="alert alert-warn" style="margin-bottom:16px;">
+    Showing staff for <strong>{{ $branch }}</strong> only. <a href="{{ route('bms.staff.index') }}">View all branches</a>
+  </div>
+@endif
 
 <div class="card">
   <div class="tbl-wrap">
