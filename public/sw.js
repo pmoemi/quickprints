@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quickprints-pwa-v4';
+const CACHE_NAME = 'quickprints-pwa-v5';
 const STATIC_ASSETS = [
   new URL('manifest.webmanifest', self.registration.scope).toString()
 ];
