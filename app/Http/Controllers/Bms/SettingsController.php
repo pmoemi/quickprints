@@ -285,11 +285,22 @@ class SettingsController extends BmsController
     public function updateFinance(Request $request): RedirectResponse
     {
         $this->authorizeBms('settings', 'update');
-        $this->settings->update($request->validate([
-            'vat_rate' => 'required|numeric|min:0|max:100',
-            'currency' => 'required|string|max:10',
-            'currency_symbol' => 'required|string|max:10',
-        ]));
+        $data = $request->validate([
+            'vat_rate'          => 'required|numeric|min:0|max:100',
+            'currency'          => 'required|string|max:10',
+            'currency_symbol'   => 'required|string|max:10',
+            'payment_methods_raw' => 'nullable|string|max:500',
+        ]);
+
+        // Convert comma-separated payment methods string to array
+        $raw = $data['payment_methods_raw'] ?? '';
+        $methods = array_values(array_filter(array_map('trim', explode(',', $raw))));
+        unset($data['payment_methods_raw']);
+        if (! empty($methods)) {
+            $data['payment_methods'] = $methods;
+        }
+
+        $this->settings->update($data);
 
         return back()->with('success', 'Finance settings saved.');
     }

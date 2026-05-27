@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -51,19 +51,19 @@
         <label>Category</label>
         <select name="category">
           <option value="">— Select —</option>
-          @foreach(['Large Format','Signage','Vehicle Branding','Corporate','Promotional','Apparel','Fabrication','Events'] as $cat)
+          @foreach($bmsJobCategories as $cat)
             <option value="{{ $cat }}" {{ old('category', $log->category) === $cat ? 'selected' : '' }}>{{ $cat }}</option>
           @endforeach
         </select>
       </div>
       <div class="fld">
-        <label>Amount (KSh) <span style="color:var(--red)">*</span></label>
+        <label>Amount ({{ $bmsCurrency }}) <span style="color:var(--red)">*</span></label>
         <input type="number" name="amount" value="{{ old('amount', $log->amount) }}" required min="0" step="0.01" placeholder="0">
       </div>
       <div class="fld">
         <label>Payment Method</label>
         <select name="pay_method">
-          @foreach(['Mpesa','Cash','Bank Transfer','Cheque','Credit'] as $m)
+          @foreach($bmsPaymentMethods as $m)
             <option value="{{ $m }}" {{ old('pay_method', $log->pay_method) === $m ? 'selected' : '' }}>{{ $m }}</option>
           @endforeach
         </select>

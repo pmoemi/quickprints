@@ -2,6 +2,7 @@
 
 namespace App\View\Composers;
 
+use App\Models\ServiceItem;
 use App\Services\BmsSettingsService;
 use App\Support\BmsNavigation;
 use App\Support\BmsPermissions;
@@ -32,6 +33,12 @@ class BmsLayoutComposer
         $effectiveTheme = $user?->theme ?? $settings['theme'] ?? 'dark';
         $settings['theme'] = $effectiveTheme;
 
+        $jobCategories = [];
+        try {
+            $jobCategories = ServiceItem::query()->distinct()->orderBy('category')->pluck('category')->filter()->values()->toArray();
+        } catch (\Throwable) {
+        }
+
         $view->with([
             'bmsUser' => $user,
             'bmsSettings' => $settings,
@@ -41,6 +48,9 @@ class BmsLayoutComposer
             'bmsBranch' => session('bms_branch', $user?->branch === 'all' ? 'all' : ($user?->branch ?? 'all')),
             'bmsCanAllBranches' => BmsNavigation::hasCap($user, 'allBranches'),
             'bmsPermissions' => BmsPermissions::forRole($role),
+            'bmsCurrency' => $settings['currency_symbol'] ?? 'KSh',
+            'bmsPaymentMethods' => $settings['payment_methods'] ?? ['Mpesa', 'Cash', 'Bank Transfer', 'Cheque', 'Credit'],
+            'bmsJobCategories' => $jobCategories,
         ]);
     }
 }

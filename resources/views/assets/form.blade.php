@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php $editing = $asset->exists; @endphp
@@ -29,11 +29,11 @@
     </div>
     <div class="form-row cols-2">
       <div class="fld">
-        <label>Purchase Cost (KSh)</label>
+        <label>Purchase Cost ({{ $bmsCurrency }})</label>
         <input type="number" name="purchase_cost" value="{{ old('purchase_cost', $asset->purchase_cost) }}" min="0" step="0.01" placeholder="0">
       </div>
       <div class="fld">
-        <label>Current Value (KSh)</label>
+        <label>Current Value ({{ $bmsCurrency }})</label>
         <input type="number" name="current_value" value="{{ old('current_value', $asset->current_value) }}" min="0" step="0.01" placeholder="0">
       </div>
     </div>

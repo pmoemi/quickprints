@@ -1,10 +1,10 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
   <div>
     <div class="page-title">Expenses (Opex)</div>
-    <div class="page-subtitle">{{ $items->count() }} entries · Total: KSh {{ number_format($items->sum('amount')) }}</div>
+    <div class="page-subtitle">{{ $items->count() }} entries · Total: {{ $bmsCurrency }} {{ number_format($items->sum('amount')) }}</div>
   </div>
   <a href="{{ route('bms.opex.create') }}" class="btn btn-primary">+ Add Expense</a>
 </div>
@@ -20,7 +20,7 @@
           <tr>
             <td style="font-size:12px;color:var(--text2);">{{ \Carbon\Carbon::parse($item->date)->format('d M Y') }}</td>
             <td>{{ $item->description }}</td>
-            <td><span class="mono">KSh {{ number_format($item->amount) }}</span></td>
+            <td><span class="mono">{{ $bmsCurrency }} {{ number_format($item->amount) }}</span></td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $item->branch }}</span></td>
             <td><span class="badge badge-gray">{{ $item->pay_method ?? '—' }}</span></td>
             <td style="font-size:12px;color:var(--text2);">{{ $item->paid_by ?? '—' }}</td>

@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php $client = $clients[$job->client_id] ?? null; @endphp
@@ -18,7 +18,7 @@
 <div class="grid-4" style="margin-bottom:20px;">
   <div class="stat-card">
     <div class="stat-label">Amount</div>
-    <div class="stat-value accent" style="font-size:22px;">KSh {{ number_format($job->amount) }}</div>
+    <div class="stat-value accent" style="font-size:22px;">{{ $bmsCurrency }} {{ number_format($job->amount) }}</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Branch</div>

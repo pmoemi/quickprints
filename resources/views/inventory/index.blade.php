@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -33,7 +33,7 @@
             <td><span style="font-size:12px;color:var(--text2);">{{ $item->cat ?? $item->category ?? '—' }}</span></td>
             <td><span class="mono" style="font-size:14px;{{ $isLow ? 'color:var(--red);font-weight:700;' : '' }}">{{ $item->qty }}</span></td>
             <td><span style="font-size:12px;color:var(--text3);">{{ $item->unit }}</span></td>
-            <td><span class="mono" style="font-size:12px;">KSh {{ number_format($item->unit_cost ?? 0) }}</span></td>
+            <td><span class="mono" style="font-size:12px;">{{ $bmsCurrency }} {{ number_format($item->unit_cost ?? 0) }}</span></td>
             <td><span class="mono" style="font-size:12px;">{{ $item->reorder_level }}</span></td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $item->branch ?? 'All' }}</span></td>
             <td>

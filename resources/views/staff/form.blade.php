@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php $editing = $member->exists; @endphp
@@ -49,7 +49,7 @@
         </select>
       </div>
       <div class="fld">
-        <label>Salary (KSh)</label>
+        <label>Salary ({{ $bmsCurrency }})</label>
         <input type="number" name="salary" value="{{ old('salary', $member->salary) }}" min="0" step="0.01" placeholder="0">
       </div>
       <div class="fld">

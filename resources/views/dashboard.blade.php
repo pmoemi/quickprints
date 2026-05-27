@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @push('styles')
 <style>
@@ -194,7 +194,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
       <div class="dash-hero-metrics">
         <div class="dash-hero-metric">
           <div class="lbl">Today's Sales</div>
-          <div class="val">KSh {{ number_format($todaySales) }}</div>
+          <div class="val">{{ $bmsCurrency }} {{ number_format($todaySales) }}</div>
           <div class="sub">{{ $todayEntries }} entries logged</div>
           @if($todaySales > 0 || $yesterdaySales > 0)
             <span class="chg {{ $salesTrend >= 0 ? 'up' : 'down' }}">{{ $salesTrend >= 0 ? '↑' : '↓' }} {{ abs($salesTrend) }}% vs yesterday</span>
@@ -202,7 +202,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
         </div>
         <div class="dash-hero-metric">
           <div class="lbl">This Week</div>
-          <div class="val">KSh {{ number_format($weekRevenue) }}</div>
+          <div class="val">{{ $bmsCurrency }} {{ number_format($weekRevenue) }}</div>
           <div class="sub">7-day sales log</div>
           @if($weekTrend !== 0)
             <span class="chg {{ $weekTrend >= 0 ? 'up' : 'down' }}">{{ $weekTrend >= 0 ? '↑' : '↓' }} {{ abs($weekTrend) }}% vs prior week</span>
@@ -210,8 +210,8 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
         </div>
         <div class="dash-hero-metric">
           <div class="lbl">Collected</div>
-          <div class="val">KSh {{ number_format($totalRevenue) }}</div>
-          <div class="sub">KSh {{ number_format($monthRevenue) }} in 30 days</div>
+          <div class="val">{{ $bmsCurrency }} {{ number_format($totalRevenue) }}</div>
+          <div class="sub">{{ $bmsCurrency }} {{ number_format($monthRevenue) }} in 30 days</div>
         </div>
       </div>
     </div>
@@ -247,7 +247,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
             <div class="dash-panel-title">Revenue Pulse</div>
             <div class="dash-panel-desc">30-day daily sales from log</div>
           </div>
-          <span class="dash-tag">KSh {{ number_format($monthRevenue) }} total</span>
+          <span class="dash-tag">{{ $bmsCurrency }} {{ number_format($monthRevenue) }} total</span>
         </div>
         <div class="dash-chart">
           <canvas id="chartRevenue"></canvas>
@@ -320,7 +320,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
           <div class="dash-alert-ico">💳</div>
           <div class="dash-alert-body">
             <div class="dash-alert-title">Outstanding Payments</div>
-            <div class="dash-alert-val red">KSh {{ number_format($pendingRevenue) }}</div>
+            <div class="dash-alert-val red">{{ $bmsCurrency }} {{ number_format($pendingRevenue) }}</div>
             <div class="dash-alert-sub">{{ $unpaidCount }} job{{ $unpaidCount !== 1 ? 's' : '' }} awaiting payment</div>
           </div>
         </div>
@@ -365,7 +365,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
                   <div class="dash-rank-fill" style="width:{{ round($branch['revenue'] / $maxBranchRev * 100) }}%;"></div>
                 </div>
               </div>
-              <div class="dash-rank-amt">KSh {{ number_format($branch['revenue']) }}</div>
+              <div class="dash-rank-amt">{{ $bmsCurrency }} {{ number_format($branch['revenue']) }}</div>
             </div>
           @endforeach
         </div>
@@ -460,7 +460,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
               <td>{{ Str::limit($job->title, 35) }}</td>
               <td class="text-muted">{{ $clients->get($job->client_id)?->name ?? '—' }}</td>
               <td class="text-muted">{{ $job->branch ?? '—' }}</td>
-              <td class="mono">KSh {{ number_format($job->amount) }}</td>
+              <td class="mono">{{ $bmsCurrency }} {{ number_format($job->amount) }}</td>
               <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
             </tr>
           @empty

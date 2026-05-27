@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -31,13 +31,13 @@
     </div>
     <div class="form-row cols-2">
       <div class="fld">
-        <label>Amount (KSh) <span style="color:var(--red)">*</span></label>
+        <label>Amount ({{ $bmsCurrency }}) <span style="color:var(--red)">*</span></label>
         <input type="number" name="amount" value="{{ old('amount', $entry->amount) }}" required min="0" step="0.01" placeholder="0">
       </div>
       <div class="fld">
         <label>Payment Method</label>
         <select name="pay_method">
-          @foreach(['Mpesa','Cash','Bank Transfer','Cheque'] as $m)
+          @foreach($bmsPaymentMethods as $m)
             <option value="{{ $m }}" {{ old('pay_method', $entry->pay_method) === $m ? 'selected' : '' }}>{{ $m }}</option>
           @endforeach
         </select>

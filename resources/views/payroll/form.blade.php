@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -28,7 +28,7 @@
     </div>
     <div class="form-row cols-2">
       <div class="fld">
-        <label>Gross Salary (KSh)</label>
+        <label>Gross Salary ({{ $bmsCurrency }})</label>
         <input type="number" name="gross_salary" id="gross_salary" value="{{ old('gross_salary', $entry->gross_salary) }}" min="0" step="0.01" placeholder="0" oninput="calcNet()">
       </div>
       <div class="fld">

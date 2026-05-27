@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php $editing = $job->exists; @endphp
@@ -48,13 +48,13 @@
         <label>Category</label>
         <select name="category">
           <option value="">— Select —</option>
-          @foreach(['Large Format','Signage','Vehicle Branding','Corporate','Promotional','Apparel','Fabrication','Events','Photography','Digital'] as $cat)
+          @foreach($bmsJobCategories as $cat)
             <option value="{{ $cat }}" {{ old('category', $job->category) === $cat ? 'selected' : '' }}>{{ $cat }}</option>
           @endforeach
         </select>
       </div>
       <div class="fld">
-        <label>Amount (KSh)</label>
+        <label>Amount ({{ $bmsCurrency }})</label>
         <input type="number" name="amount" value="{{ old('amount', $job->amount) }}" placeholder="0" min="0" step="0.01">
       </div>
       <div class="fld">

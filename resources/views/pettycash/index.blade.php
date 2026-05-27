@@ -1,10 +1,10 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
   <div>
     <div class="page-title">Petty Cash</div>
-    <div class="page-subtitle">{{ $entries->count() }} entries · Total: KSh {{ number_format($entries->sum('amount')) }}</div>
+    <div class="page-subtitle">{{ $entries->count() }} entries · Total: {{ $bmsCurrency }} {{ number_format($entries->sum('amount')) }}</div>
   </div>
   <a href="{{ route('bms.pettycash.create') }}" class="btn btn-primary">+ Add Entry</a>
 </div>
@@ -20,7 +20,7 @@
           <tr>
             <td style="font-size:12px;color:var(--text2);">{{ \Carbon\Carbon::parse($entry->date)->format('d M Y') }}</td>
             <td>{{ $entry->description }}</td>
-            <td class="mono">KSh {{ number_format($entry->amount) }}</td>
+            <td class="mono">{{ $bmsCurrency }} {{ number_format($entry->amount) }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $entry->branch }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $entry->submitted_by ?? '—' }}</td>
             <td>

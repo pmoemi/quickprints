@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -25,11 +25,11 @@
           <tr>
             <td style="font-weight:600;">{{ $entry->staff_name ?? $member?->name ?? '—' }}</td>
             <td class="mono" style="font-size:12px;">{{ $entry->month }}</td>
-            <td class="mono">KSh {{ number_format($entry->gross_salary ?? 0) }}</td>
+            <td class="mono">{{ $bmsCurrency }} {{ number_format($entry->gross_salary ?? 0) }}</td>
             <td class="mono" style="font-size:12px;">{{ number_format($entry->nhif ?? 0) }}</td>
             <td class="mono" style="font-size:12px;">{{ number_format($entry->nssf ?? 0) }}</td>
             <td class="mono" style="font-size:12px;">{{ number_format($entry->paye ?? 0) }}</td>
-            <td><span class="mono text-green" style="font-weight:700;">KSh {{ number_format($entry->net_pay ?? 0) }}</span></td>
+            <td><span class="mono text-green" style="font-weight:700;">{{ $bmsCurrency }} {{ number_format($entry->net_pay ?? 0) }}</span></td>
             <td>
               @if(($entry->status ?? 'pending') === 'paid')
                 <span class="badge badge-green">Paid</span>

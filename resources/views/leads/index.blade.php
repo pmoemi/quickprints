@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -34,7 +34,7 @@
             <td style="font-weight:600;">{{ $lead->client_name }}</td>
             <td class="mono" style="font-size:12px;">{{ $lead->phone ?? '—' }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $lead->service ?? '—' }}</span></td>
-            <td><span class="mono">KSh {{ number_format($lead->value ?? 0) }}</span></td>
+            <td><span class="mono">{{ $bmsCurrency }} {{ number_format($lead->value ?? 0) }}</span></td>
             <td>
               <span class="badge {{ $statusColors[$lead->status ?? 'new'] ?? 'badge-gray' }}">{{ ucfirst($lead->status ?? 'new') }}</span>
             </td>

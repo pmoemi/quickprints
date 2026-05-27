@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php $editing = $item->exists; @endphp
@@ -52,7 +52,7 @@
 
     <div class="form-row cols-2">
       <div class="fld">
-        <label>Unit Cost (KSh)</label>
+        <label>Unit Cost ({{ $bmsCurrency }})</label>
         <input type="number" name="unit_cost" value="{{ old('unit_cost', $item->unit_cost) }}" min="0" step="0.01" placeholder="0">
       </div>
       <div class="fld">

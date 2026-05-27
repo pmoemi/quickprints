@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -36,7 +36,7 @@
             <td style="font-size:12px;color:var(--text2);">{{ \Carbon\Carbon::parse($quote->date)->format('d M Y') }}</td>
             <td style="font-weight:600;">{{ $quote->client_name }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $quote->branch }}</span></td>
-            <td><span class="mono">KSh {{ number_format($total, 2) }}</span></td>
+            <td><span class="mono">{{ $bmsCurrency }} {{ number_format($total, 2) }}</span></td>
             <td>
               @php $statusColors = ['draft'=>'badge-gray','sent'=>'badge-blue','approved'=>'badge-green','declined'=>'badge-red']; @endphp
               <span class="badge {{ $statusColors[$quote->status ?? 'draft'] ?? 'badge-gray' }}">{{ ucfirst($quote->status ?? 'draft') }}</span>

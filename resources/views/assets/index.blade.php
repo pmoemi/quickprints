@@ -1,10 +1,10 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
   <div>
     <div class="page-title">Assets</div>
-    <div class="page-subtitle">{{ $assets->count() }} asset(s) · Value: KSh {{ number_format($assets->sum('current_value')) }}</div>
+    <div class="page-subtitle">{{ $assets->count() }} asset(s) · Value: {{ $bmsCurrency }} {{ number_format($assets->sum('current_value')) }}</div>
   </div>
   <a href="{{ route('bms.assets.create') }}" class="btn btn-primary">+ Add Asset</a>
 </div>
@@ -20,8 +20,8 @@
           <tr>
             <td style="font-weight:600;">{{ $asset->name }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $asset->category }}</span></td>
-            <td class="mono">KSh {{ number_format($asset->purchase_cost ?? 0) }}</td>
-            <td class="mono text-green">KSh {{ number_format($asset->current_value ?? 0) }}</td>
+            <td class="mono">{{ $bmsCurrency }} {{ number_format($asset->purchase_cost ?? 0) }}</td>
+            <td class="mono text-green">{{ $bmsCurrency }} {{ number_format($asset->current_value ?? 0) }}</td>
             <td>
               @php $condColors = ['Good'=>'badge-green','Fair'=>'badge-yellow','Poor'=>'badge-red','Under Maintenance'=>'badge-orange']; @endphp
               <span class="badge {{ $condColors[$asset->condition_status ?? 'Good'] ?? 'badge-gray' }}">{{ $asset->condition_status ?? 'Good' }}</span>

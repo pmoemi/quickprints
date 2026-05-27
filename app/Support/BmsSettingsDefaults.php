@@ -17,6 +17,7 @@ class BmsSettingsDefaults
             'address' => 'Nairobi, Kenya',
             'currency' => 'KES',
             'currency_symbol' => 'KSh',
+            'payment_methods' => ['Mpesa', 'Cash', 'Bank Transfer', 'Cheque', 'Credit'],
             'vat_rate' => 16,
             'branches' => ['Westlands', 'CBD', 'Eastleigh', 'Karen', 'Ngong Road'],
             'brand_color' => '#b91c1c',

@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php
@@ -18,17 +18,17 @@
 <div class="grid-3" style="margin-bottom:20px;">
   <div class="stat-card">
     <div class="stat-label">Today's Total</div>
-    <div class="stat-value green">KSh {{ number_format($todayTotal) }}</div>
+    <div class="stat-value green">{{ $bmsCurrency }} {{ number_format($todayTotal) }}</div>
     <div class="stat-sub">{{ $todayCount }} entries today</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">All Time Total</div>
-    <div class="stat-value accent">KSh {{ number_format($logs->sum('amount')) }}</div>
+    <div class="stat-value accent">{{ $bmsCurrency }} {{ number_format($logs->sum('amount')) }}</div>
     <div class="stat-sub">{{ $logs->count() }} total entries</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Pending Payments</div>
-    <div class="stat-value red">KSh {{ number_format($logs->where('pay_status', 'pending')->sum('amount')) }}</div>
+    <div class="stat-value red">{{ $bmsCurrency }} {{ number_format($logs->where('pay_status', 'pending')->sum('amount')) }}</div>
     <div class="stat-sub">{{ $logs->where('pay_status', 'pending')->count() }} pending</div>
   </div>
 </div>
@@ -58,7 +58,7 @@
             <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $log->job_desc }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $log->category ?? '—' }}</span></td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $log->branch }}</span></td>
-            <td><span class="mono">KSh {{ number_format($log->amount) }}</span></td>
+            <td><span class="mono">{{ $bmsCurrency }} {{ number_format($log->amount) }}</span></td>
             <td><span class="badge badge-gray">{{ $log->pay_method ?? '—' }}</span></td>
             <td>
               @if($log->pay_status === 'paid')

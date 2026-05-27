@@ -6,6 +6,7 @@ use App\Models\BmsMessage;
 use App\Models\User;
 use App\Support\BmsAudit;
 use App\Support\BmsNavigation;
+use App\Support\BmsSettingsDefaults;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,7 @@ class MessageController extends BmsController
     {
         return view('messages.form', [
             'users' => User::query()->orderBy('name')->get(),
-            'roles' => array_keys(BmsNavigation::rolePages()),
+            'roles' => array_keys(BmsSettingsDefaults::roles()),
         ]);
     }
 

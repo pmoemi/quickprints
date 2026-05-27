@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -51,7 +51,7 @@
             <td style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
             <td class="mono" style="font-size:12px;">{{ $member->phone ?? '—' }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $member->branch === 'all' ? 'All' : ($member->branch ?? '—') }}</span></td>
-            <td class="mono">KSh {{ number_format($member->salary ?? 0) }}</td>
+            <td class="mono">{{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}</td>
             <td>
               @if($member->active)
                 <span class="badge badge-green">Active</span>

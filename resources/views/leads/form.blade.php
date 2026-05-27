@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php $editing = $lead->exists; @endphp
@@ -31,13 +31,13 @@
         <label>Service Interested In</label>
         <select name="service">
           <option value="">— Select —</option>
-          @foreach(['Large Format','Signage','Vehicle Branding','Corporate','Promotional','Apparel','Fabrication','Events'] as $s)
+          @foreach($bmsJobCategories as $s)
             <option value="{{ $s }}" {{ old('service', $lead->service) === $s ? 'selected' : '' }}>{{ $s }}</option>
           @endforeach
         </select>
       </div>
       <div class="fld">
-        <label>Estimated Value (KSh)</label>
+        <label>Estimated Value ({{ $bmsCurrency }})</label>
         <input type="number" name="value" value="{{ old('value', $lead->value) }}" min="0" step="0.01" placeholder="0">
       </div>
       <div class="fld">

@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 @php
@@ -58,7 +58,7 @@
             <td>{{ $client?->name ?? '—' }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $job->branch }}</span></td>
             <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
-            <td><span class="mono">KSh {{ number_format($job->amount) }}</span></td>
+            <td><span class="mono">{{ $bmsCurrency }} {{ number_format($job->amount) }}</span></td>
             <td>
               @if($job->paid)
                 <span class="badge badge-green">Paid</span>

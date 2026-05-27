@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -25,7 +25,7 @@
             <div class="k-card-title">{{ $job->title }}</div>
             <div class="k-card-client">{{ $client?->name ?? '—' }}</div>
             <div class="k-card-footer">
-              <span class="k-card-amount">KSh {{ number_format($job->amount) }}</span>
+              <span class="k-card-amount">{{ $bmsCurrency }} {{ number_format($job->amount) }}</span>
               <span class="priority-dot priority-{{ $job->priority ?? 'low' }}" title="{{ $job->priority }}"></span>
             </div>
           </a>

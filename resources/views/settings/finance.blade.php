@@ -35,6 +35,15 @@
           <input type="text" name="currency_symbol" value="{{ old('currency_symbol', $settings['currency_symbol'] ?? 'KES') }}" maxlength="10" required placeholder="KES">
         </div>
       </div>
+      <div class="form-row">
+        <div class="fld">
+          <label>Payment Methods</label>
+          <input type="text" name="payment_methods_raw"
+                 value="{{ old('payment_methods_raw', implode(', ', $settings['payment_methods'] ?? ['Mpesa','Cash','Bank Transfer','Cheque','Credit'])) }}"
+                 placeholder="Mpesa, Cash, Bank Transfer, Cheque, Credit">
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Comma-separated. These appear in dropdowns across the BMS.</div>
+        </div>
+      </div>
       <button type="submit" class="btn btn-primary">Save</button>
     </form>
   </div>
@@ -52,6 +61,10 @@
     <div class="activity-item">
       <div class="activity-text" style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;width:120px;flex-shrink:0;">Symbol</div>
       <div style="font-size:13px;color:var(--text);">{{ $settings['currency_symbol'] ?? 'KES' }}</div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-text" style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;width:120px;flex-shrink:0;">Pay Methods</div>
+      <div style="font-size:13px;color:var(--text);">{{ implode(', ', $settings['payment_methods'] ?? []) ?: '—' }}</div>
     </div>
   </div>
 </div>

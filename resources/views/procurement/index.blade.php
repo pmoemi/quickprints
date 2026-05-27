@@ -1,4 +1,4 @@
-@extends('layouts.bms')
+﻿@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -22,8 +22,8 @@
             <td style="font-weight:600;">{{ $entry->item_name ?? $entry->description ?? '—' }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $entry->supplier ?? '—' }}</td>
             <td class="mono">{{ $entry->qty ?? '—' }}</td>
-            <td class="mono">KSh {{ number_format($entry->unit_cost ?? 0) }}</td>
-            <td class="mono text-accent">KSh {{ number_format($entry->total ?? (($entry->qty ?? 1) * ($entry->unit_cost ?? 0))) }}</td>
+            <td class="mono">{{ $bmsCurrency }} {{ number_format($entry->unit_cost ?? 0) }}</td>
+            <td class="mono text-accent">{{ $bmsCurrency }} {{ number_format($entry->total ?? (($entry->qty ?? 1) * ($entry->unit_cost ?? 0))) }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $entry->branch }}</td>
             <td>
               <span class="badge {{ ($entry->status ?? 'pending') === 'received' ? 'badge-green' : 'badge-orange' }}">
