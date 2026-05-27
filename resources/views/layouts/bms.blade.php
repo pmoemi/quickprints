@@ -5,8 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="theme-color" content="{{ $bmsBrand['primary'] ?? '#b91c1c' }}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="QuickPrints">
 <title>{{ $bmsSettings['company_name'] ?? config('app.name', 'QuickPrints') }} — BMS</title>
 @include('partials.favicon', ['settings' => $bmsSettings])
+<link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+<link rel="apple-touch-icon" href="{{ asset('pwa-icon.svg') }}">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -303,6 +308,18 @@ tr:last-child td{border-bottom:none;}
 
 /* MOBILE NAV */
 .mobile-nav{display:none;}
+.pwa-install-banner{display:none;}
+.pwa-install-copy{display:flex;align-items:flex-start;gap:10px;min-width:0;}
+.pwa-install-icon{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;}
+.pwa-install-title{font-size:13px;font-weight:700;color:var(--text);line-height:1.25;}
+.pwa-install-text{font-size:11px;color:var(--text2);line-height:1.35;margin-top:2px;}
+.pwa-install-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.pwa-install-btn{border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700;background:var(--accent);color:#fff;}
+.pwa-install-btn:hover{background:var(--accent2);}
+.pwa-install-link{background:transparent;color:var(--text3);font-size:11px;font-weight:600;padding:7px 4px;}
+.pwa-install-link:hover{color:var(--text);}
+.pwa-install-dismiss{width:28px;height:28px;border-radius:50%;background:var(--bg3);color:var(--text2);font-size:14px;}
+.pwa-install-dismiss:hover{color:var(--text);background:var(--bg4);}
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -350,6 +367,13 @@ tr:last-child td{border-bottom:none;}
   }
   .mobile-nav a.active{color:var(--accent);background:var(--accent-a14);}
   .mobile-nav .ico{font-size:18px;line-height:1;}
+  .pwa-install-banner.show{
+    position:fixed;left:10px;right:10px;bottom:76px;z-index:130;
+    display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+    background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+    padding:10px 10px 10px 12px;box-shadow:0 14px 36px rgba(0,0,0,.38);
+  }
+  .pwa-install-actions{flex-wrap:wrap;justify-content:flex-end;max-width:168px;}
   .kanban-wrap{padding-bottom:80px;}
 }
 @media(hover:none){
@@ -547,6 +571,21 @@ tr:last-child td{border-bottom:none;}
 
 <div id="toast"></div>
 
+<div class="pwa-install-banner" id="pwa-install-banner" role="region" aria-label="Install QuickPrints app" aria-hidden="true">
+  <div class="pwa-install-copy">
+    <div class="pwa-install-icon">QP</div>
+    <div>
+      <div class="pwa-install-title">Install QuickPrints</div>
+      <div class="pwa-install-text" id="pwa-install-text">Add the app to your phone for faster access.</div>
+    </div>
+  </div>
+  <div class="pwa-install-actions">
+    <button type="button" class="pwa-install-btn" id="pwa-install-btn">Install</button>
+    <button type="button" class="pwa-install-link" id="pwa-install-never">Don’t show again</button>
+    <button type="button" class="pwa-install-dismiss" id="pwa-install-dismiss" aria-label="Dismiss install banner">×</button>
+  </div>
+</div>
+
 {{-- Page navigation progress bar --}}
 <div id="page-loader"><div id="page-loader-bar"></div></div>
 
@@ -645,6 +684,101 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+(function() {
+  const banner = document.getElementById('pwa-install-banner');
+  const installBtn = document.getElementById('pwa-install-btn');
+  const dismissBtn = document.getElementById('pwa-install-dismiss');
+  const neverBtn = document.getElementById('pwa-install-never');
+  const text = document.getElementById('pwa-install-text');
+  const DISMISSED_AT_KEY = 'quickprints:pwa-install-dismissed-at';
+  const NEVER_SHOW_KEY = 'quickprints:pwa-install-never-show';
+  const DISMISS_DAYS = 14;
+  let deferredPrompt = null;
+
+  if (!banner || !installBtn || !dismissBtn || !neverBtn || !text) return;
+
+  function isMobileDevice() {
+    return window.matchMedia('(max-width: 768px)').matches && window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  function dismissedRecently() {
+    const dismissedAt = Number(localStorage.getItem(DISMISSED_AT_KEY) || 0);
+    if (!dismissedAt) return false;
+    return Date.now() - dismissedAt < DISMISS_DAYS * 24 * 60 * 60 * 1000;
+  }
+
+  function shouldShowBanner() {
+    return isMobileDevice()
+      && !isStandalone()
+      && localStorage.getItem(NEVER_SHOW_KEY) !== '1'
+      && !dismissedRecently();
+  }
+
+  function showBanner(mode) {
+    if (!shouldShowBanner()) return;
+    if (mode === 'ios') {
+      text.textContent = 'Tap Share, then Add to Home Screen to install.';
+      installBtn.style.display = 'none';
+    }
+    banner.classList.add('show');
+    banner.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideBanner() {
+    banner.classList.remove('show');
+    banner.setAttribute('aria-hidden', 'true');
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register(@json(asset('sw.js'))).catch(function() {});
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', function(event) {
+    if (!isMobileDevice()) return;
+    event.preventDefault();
+    deferredPrompt = event;
+    showBanner('prompt');
+  });
+
+  installBtn.addEventListener('click', async function() {
+    if (!deferredPrompt) return;
+    hideBanner();
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (choice.outcome !== 'accepted') {
+      localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()));
+    }
+  });
+
+  dismissBtn.addEventListener('click', function() {
+    localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()));
+    hideBanner();
+  });
+
+  neverBtn.addEventListener('click', function() {
+    localStorage.setItem(NEVER_SHOW_KEY, '1');
+    hideBanner();
+  });
+
+  window.addEventListener('appinstalled', function() {
+    localStorage.setItem(NEVER_SHOW_KEY, '1');
+    hideBanner();
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isIosSafari = /iphone|ipad|ipod/.test(ua) && /safari/.test(ua) && !/crios|fxios|edgios/.test(ua);
+    if (isIosSafari) showBanner('ios');
+  });
+})();
 </script>
 @stack('scripts')
 </body>

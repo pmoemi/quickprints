@@ -1,0 +1,19 @@
+{
+  "name": "QuickPrints BMS",
+  "short_name": "QuickPrints",
+  "description": "QuickPrints Business Management System",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#111318",
+  "theme_color": "#b91c1c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

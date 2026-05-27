@@ -22,7 +22,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            // 'password' => 'hashed' intentionally omitted — all controllers call Hash::make() explicitly
         ];
     }
 
