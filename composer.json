@@ -38,9 +38,17 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
+            "@php artisan config:clear",
             "@php artisan migrate --force",
-            "npm install --ignore-scripts",
-            "npm run build"
+            "@php artisan db:seed --force",
+            "@php artisan storage:link"
+        ],
+        "deploy": [
+            "@php artisan config:clear",
+            "@php artisan cache:clear",
+            "@php artisan view:clear",
+            "@php artisan migrate --force",
+            "@php artisan storage:link"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -62,8 +70,10 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
+            "@php artisan config:clear --ansi",
+            "@php artisan migrate --force --ansi",
+            "@php artisan db:seed --force --ansi",
+            "@php artisan storage:link --ansi"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"

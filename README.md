@@ -6,6 +6,30 @@ Business Management System for print, signage, and fabrication shops. QuickPrint
 
 ---
 
+## Quick Start
+
+```bash
+git clone https://github.com/pmoemi/quickprints.git
+cd quickprints
+composer install
+cp .env.example .env          # edit MySQL credentials before continuing
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan storage:link
+bash scripts/verify-install.sh
+```
+
+Or run the bundled setup script (after editing `.env` with your MySQL credentials):
+
+```bash
+composer setup
+```
+
+> **MySQL is required.** Do not use SQLite — it will cause missing-table errors and deployment issues.
+
+---
+
 ## Features
 
 ### Sales & CRM
@@ -60,42 +84,37 @@ Business Management System for print, signage, and fabrication shops. QuickPrint
 
 ## Requirements
 
-- PHP **8.3+** with extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `json`, `mbstring`, `openssl`, `pdo`, `tokenizer`, `xml`
+- PHP **8.3+** with extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `json`, `mbstring`, `openssl`, `pdo`, `pdo_mysql`, `tokenizer`, `xml`
 - Composer 2.x
-- MySQL/MariaDB
-- Apache with `mod_rewrite` (XAMPP works out of the box)
+- **MySQL 5.7+ / MariaDB 10.3+**
+- Apache with `mod_rewrite`
 
-> **Node.js / npm are not required.** The BMS UI is served entirely from Blade views. Vite and Tailwind in this repo are unused Laravel boilerplate unless you extend the frontend pipeline yourself.
+> **Node.js / npm are not required.** The BMS UI is served entirely from Blade views.
 
 ---
 
 ## Installation
 
-### 1. Clone the repository
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/pmoemi/quickprints.git
 cd quickprints
-```
-
-### 2. Install PHP dependencies
-
-```bash
 composer install
 ```
 
-### 3. Environment setup
+### 2. Environment
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Edit `.env` for your environment. For **XAMPP / MySQL**:
+Edit `.env` — **must use MySQL**:
 
 ```env
 APP_NAME=QuickPrints
-APP_URL=http://localhost/quickprints
+APP_URL=http://localhost
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -105,48 +124,107 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Create the database before migrating:
+Create the database first:
 
 ```sql
 CREATE DATABASE quickprints CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 4. Database
+Verify the connection before migrating:
+
+```bash
+php artisan config:clear
+php artisan db:show    # must show Connection: mysql
+```
+
+### 3. Database
 
 ```bash
 php artisan migrate
 php artisan db:seed
-```
-
-The seeder loads demo company settings, sample jobs, clients, inventory, and staff accounts.
-
-### 5. Storage link
-
-```bash
 php artisan storage:link
 ```
 
-### 6. Run the application
+### 4. Run locally
 
-**With XAMPP Apache**, point the document root to the project folder (the included `.htaccess` rewrites requests to `public/`). Visit:
-
-```
-http://localhost/quickprints/login
-```
-
-**Or use Laravel's built-in server:**
+**Recommended — Laravel dev server:**
 
 ```bash
 php artisan serve
+# → http://127.0.0.1:8000/login
 ```
 
-Then open `http://127.0.0.1:8000/login`.
+**XAMPP subdirectory** (`http://localhost/quickprints/`):
 
-**Optional — Laravel dev stack** (includes queue worker, log tail, and Vite; only needed if you add Vite-based assets):
+1. Place the project in `htdocs/quickprints`
+2. Uncomment `RewriteBase /quickprints/` in the **project root** `.htaccess`
+3. Visit `http://localhost/quickprints/login`
+
+> On production domains, do **not** set any `RewriteBase` in `public/.htaccess`.
+
+---
+
+## Production Deployment
+
+### Checklist
+
+| Step | Action |
+|------|--------|
+| 1 | Copy `.env.example` → `.env`, set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` |
+| 2 | Set `DB_CONNECTION=mysql` and MySQL credentials |
+| 3 | Point **document root** to `public/` (e.g. `/var/www/quickprints/public`) |
+| 4 | `composer install --no-dev --optimize-autoloader` |
+| 5 | `php artisan key:generate` |
+| 6 | `bash scripts/deploy.sh` |
+| 7 | `php artisan db:seed --force` (first deploy only) |
+| 8 | Fix permissions (see below) |
+| 9 | `bash scripts/verify-install.sh` |
+
+### Document root
+
+The web server **must** serve from the `public/` folder:
+
+```
+/www/wwwroot/your-domain.com/public   ✓
+/www/wwwroot/your-domain.com          ✗
+```
+
+The included `public/.htaccess` uses standard Laravel rewrites with **no hardcoded paths** — safe for any domain.
+
+### File permissions (aaPanel / BT Panel)
+
+The web server user (usually `www`) must own writable directories:
 
 ```bash
-composer dev
+sudo chown -R www:www storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
 ```
+
+Without this, you will get `tempnam()` / HTTP 500 errors because Laravel cannot write compiled views.
+
+### After every deploy
+
+```bash
+git pull
+composer install --no-dev --optimize-autoloader
+composer deploy          # or: bash scripts/deploy.sh
+```
+
+Only cache config/routes **after** permissions are correct:
+
+```bash
+php artisan config:cache
+php artisan route:cache
+```
+
+### Common mistakes
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Table '…bms_settings' doesn't exist` | Migrations never ran on MySQL | `php artisan migrate --force` |
+| Still shows SQLite in `db:show` | `.env` not updated or config cached | Edit `.env`, run `php artisan config:clear` |
+| Apache generic 500 | Wrong document root or old `RewriteBase` | Point vhost to `public/`, pull latest `.htaccess` |
+| `tempnam()` ErrorException | `storage/` not writable by web user | `chown -R www:www storage bootstrap/cache` |
 
 ---
 
@@ -218,7 +296,10 @@ resources/views/          # Blade UI
 routes/
   web.php                 # BMS web routes
   api.php                 # API routes (prefix: bms/api)
-public/                   # Web root (via .htaccess rewrite)
+public/                   # Web document root (production)
+scripts/
+  deploy.sh               # Production deploy helper
+  verify-install.sh       # Post-install checks
 ```
 
 ---
@@ -226,10 +307,19 @@ public/                   # Web root (via .htaccess rewrite)
 ## Common Commands
 
 ```bash
+# Full local setup
+composer setup
+
+# Production deploy (after git pull)
+composer deploy
+
+# Verify install / deployment
+bash scripts/verify-install.sh
+
 # Run tests
 composer test
 
-# Clear caches after config changes
+# Clear caches after .env changes
 php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
@@ -243,36 +333,6 @@ php artisan bms:reset-data demo --force
 # Code style (Pint)
 ./vendor/bin/pint
 ```
-
----
-
-## Deployment Notes
-
-1. Set `APP_ENV=production`, `APP_DEBUG=false`, and a strong `APP_KEY`.
-2. Configure real mail credentials (`MAIL_*`) for invoice and notification emails.
-3. **Set the web server document root to `public/`** (e.g. `/www/wwwroot/quickprints.work/public`). Do not point the vhost at the project root on production.
-4. Ensure `storage/` and `bootstrap/cache/` are owned by the web server user (`www` on aaPanel/BT):
-
-   ```bash
-   sudo chown -R www:www storage bootstrap/cache
-   sudo chmod -R 775 storage bootstrap/cache
-   ```
-
-5. Run migrations and seed on MySQL:
-
-   ```bash
-   php artisan config:clear
-   php artisan migrate --force
-   php artisan db:seed --force
-   php artisan storage:link
-   ```
-
-6. Run `php artisan config:cache` and `php artisan route:cache` in production **after** permissions are correct.
-7. Ensure HTTPS and rotate all demo passwords.
-
-### XAMPP subdirectory
-
-If running under `http://localhost/quickprints/`, uncomment `RewriteBase /quickprints/` in the project root `.htaccess`.
 
 ---
 
