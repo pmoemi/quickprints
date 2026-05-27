@@ -9,6 +9,26 @@
 </div>
 
 @if($canResetData)
+<div class="card mb-2">
+  <div class="card-header">
+    <div>
+      <div class="card-title">Services Catalogue</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px;">Signages · Branding · Printing — safe to run anytime</div>
+    </div>
+    <span class="badge badge-blue">{{ number_format($serviceCount) }} in catalogue</span>
+  </div>
+  <p style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.5;">
+    Adds {{ number_format($catalogTotal) }} default services (Signages, Branding, Printing) when missing. Does not delete or change existing services, jobs, clients, or any other data.
+  </p>
+  <form method="POST" action="{{ route('bms.maintenance.seed-services') }}">
+    @csrf
+    <button type="submit" class="btn btn-primary btn-sm">Seed Services Catalogue</button>
+  </form>
+  <div style="margin-top:12px;font-size:11px;color:var(--text3);font-family:var(--mono);">
+    php artisan bms:seed-services --force
+  </div>
+</div>
+
 <div class="card mb-2" style="border-color:var(--border2);">
   <div class="card-header">
     <div>
@@ -19,7 +39,7 @@
   </div>
 
   <div class="alert alert-warn" style="margin-bottom:16px;">
-    Destructive actions cannot be undone. Settings, branding, and user accounts are always preserved when clearing.
+    Destructive actions cannot be undone. Settings, branding, the services catalogue, and user accounts are always preserved when clearing.
   </div>
 
   @if($totalRecords > 0)

@@ -2,22 +2,123 @@
 
 namespace App\Support;
 
+use App\Models\ServiceItem;
+
+/**
+ * Default services catalogue — aligned with QuickPrints invoice branding:
+ * Signages | Branding | Printing
+ */
 class ServicesCatalog
 {
     /** @return array<string, list<string>> */
     public static function all(): array
     {
         return [
-            'Large Format Printing' => ['Vinyl Banners', 'Mesh Banners', 'Canvas Prints', 'Wallpapers', 'Floor Graphics', 'Window Graphics', 'Building Wraps', 'Backlit Prints', 'Poster Prints', 'One-Way Vision', 'Perforated Vinyl', 'Fabric Prints', 'Pop-Up Displays'],
-            'Signage & Branding' => ['Acrylic Letters', 'Metal Letters', 'LED Illuminated Signs', 'Pylon Signs', 'Directional Signs', 'Fascia Boards', 'Billboards', 'Totems', 'Pavement Signs', 'Safety Signs'],
-            'Vehicle Branding' => ['Full Vehicle Wrap', 'Partial Vehicle Wrap', 'Vehicle Decals', 'Fleet Branding', 'Motorbike Branding', 'Boat Branding', 'Branded Covers'],
-            'Corporate Branding' => ['Letterheads', 'Business Cards', 'Envelopes', 'Folders', 'Company Profiles', 'ID Cards', 'Loyalty Cards', 'Brochures', 'Flyers'],
-            'Promotional Items' => ['Branded Pens', 'Mugs', 'Notebooks', 'Bags', 'USB Drives', 'Keychains', 'Calendars', 'Diaries', 'Branded Umbrellas'],
-            'Apparel & Uniforms' => ['T-Shirt Printing', 'Polo Shirts', 'Hoodies', 'Caps', 'Reflective Jackets', 'Work Uniforms', 'School Uniforms', 'Sports Kits'],
-            'Fabrication & Metalwork' => ['Steel Fabrication', 'Aluminium Fabrication', 'Stainless Steel Signs', 'Gate Fabrication', 'Shelving', 'Display Stands', 'Frames'],
-            'Events & Exhibitions' => ['Exhibition Stands', 'Pop-Up Banners', 'Event Backdrops', 'Stage Branding', 'Table Covers', 'Crowd Barriers', 'Event Programs'],
-            'Photography & Media' => ['Product Photography', 'Corporate Headshots', 'Event Photography', 'Videography', 'Drone Photography', 'Photo Editing'],
-            'Digital Services' => ['Social Media Graphics', 'Email Templates', 'Digital Ads', 'Website Banners', 'Motion Graphics', 'Logo Design'],
+            'Signages' => [
+                '3D Non Illuminated Signage',
+                '3D Illuminated Signage',
+                'LED Illuminated Signs',
+                'Acrylic Letters & Logos',
+                'Metal Letters',
+                'Pylon Signs',
+                'Fascia Boards',
+                'Directional Signs',
+                'Billboards',
+                'Totems',
+                'Pavement Signs',
+                'Safety Signs & Wayfinding',
+                'Shop Front Signage',
+                'Reception Wall Branding',
+                'Window Graphics',
+                'One-Way Vision',
+                'Building Wraps',
+                'Backlit Signage',
+                'Neon-Style LED Signs',
+                'Menu Boards',
+            ],
+            'Branding' => [
+                'Full Vehicle Wrap',
+                'Partial Vehicle Wrap',
+                'Vehicle Decals',
+                'Fleet Branding',
+                'Motorbike Branding',
+                'Boat Branding',
+                'Business Cards',
+                'Letterheads',
+                'Company Profiles',
+                'Brochures',
+                'Flyers',
+                'Branded Pens',
+                'Branded Mugs',
+                'Branded Bags',
+                'T-Shirt Printing',
+                'Polo Shirts',
+                'Hoodies & Caps',
+                'Work Uniforms',
+                'School Uniforms',
+                'Exhibition Stands',
+                'Event Backdrops',
+                'Stage Branding',
+                'Logo Design',
+            ],
+            'Printing' => [
+                'Vinyl Banners',
+                'Mesh Banners',
+                'Canvas Prints',
+                'Poster Prints',
+                'Pop-Up Displays',
+                'Roll-Up Banners',
+                'Wallpapers & Murals',
+                'Floor Graphics',
+                'Fabric Printing',
+                'Perforated Vinyl',
+                'Large Format Printing',
+                'Business Stationery',
+                'Envelopes & Folders',
+                'ID Cards',
+                'Loyalty Cards',
+                'Calendars',
+                'Diaries',
+                'Digital Ads',
+                'Social Media Graphics',
+                'Website Banners',
+            ],
         ];
+    }
+
+    public static function totalItems(): int
+    {
+        return array_sum(array_map('count', self::all()));
+    }
+
+    /** Add catalogue services that are not already in the database (safe to run anytime). */
+    public static function seedMissing(): int
+    {
+        $nextId = (int) (ServiceItem::query()->max('id') ?? 0);
+        $added = 0;
+
+        foreach (self::all() as $category => $names) {
+            foreach ($names as $sortOrder => $name) {
+                $exists = ServiceItem::query()
+                    ->where('category', $category)
+                    ->where('name', $name)
+                    ->exists();
+
+                if ($exists) {
+                    continue;
+                }
+
+                $nextId++;
+                ServiceItem::query()->create([
+                    'id' => $nextId,
+                    'category' => $category,
+                    'name' => $name,
+                    'sort_order' => $sortOrder,
+                ]);
+                $added++;
+            }
+        }
+
+        return $added;
     }
 }

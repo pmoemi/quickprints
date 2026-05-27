@@ -34,7 +34,6 @@ class BmsDataResetService
         'quotes',
         'leads',
         'inventory_items',
-        'service_items',
         'clients',
         'staff',
     ];
@@ -59,7 +58,7 @@ class BmsDataResetService
     }
 
     /**
-     * Remove operational BMS records. Settings and user accounts are kept.
+     * Remove operational BMS records. Settings, service catalogue, and user accounts are kept.
      *
      * @return array<string, int> Rows removed per table
      */

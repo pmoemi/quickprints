@@ -85,13 +85,17 @@
 
 <div class="card" style="margin-top:16px;">
   <div class="card-header"><div class="card-title">Favicon</div></div>
+  <p style="font-size:12px;color:var(--text3);margin-bottom:14px;">Shown in browser tabs — usually on a light background. Use a simple, high-contrast icon.</p>
   @if(!empty($settings['favicon_url']))
-    <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:center;gap:12px;">
-      <img src="{{ \App\Support\BrandAssets::faviconUrl($settings) }}" alt="Favicon" style="width:32px;height:32px;object-fit:contain;">
-      <span style="font-size:12px;color:var(--text3);">Shown in browser tabs</span>
+    <div style="margin-bottom:16px;padding:14px;background:#e8eaef;border-radius:var(--radius);border:1px solid #dde1e8;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #d1d5db;border-radius:8px 8px 0 0;padding:8px 14px 8px 10px;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+        <img src="{{ \App\Support\BrandAssets::faviconUrl($settings) }}" alt="Favicon preview" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;">
+        <span style="font-size:12px;color:#374151;font-weight:500;white-space:nowrap;">{{ $settings['company_name'] ?? 'QuickPrints' }}</span>
+      </div>
+      <div style="font-size:11px;color:#6b7280;margin-top:8px;">Browser tab preview</div>
     </div>
   @else
-    <div style="background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:16px;color:var(--text3);font-size:13px;">No favicon uploaded</div>
+    <div style="background:#f8f9fb;border:1px dashed #d1d5db;border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:16px;color:var(--text3);font-size:13px;">No favicon uploaded</div>
   @endif
   <form method="POST" action="{{ route('bms.settings.branding.favicon') }}" enctype="multipart/form-data">
     @csrf

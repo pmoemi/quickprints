@@ -52,6 +52,7 @@ class ResetBmsDataCommand extends Command
         $this->info('BMS data reset commands:');
         $this->line('  php artisan bms:reset-data counts          Show record totals');
         $this->line('  php artisan bms:reset-data clear --force   Delete all operational records');
+        $this->line('  php artisan bms:seed-services --force   Add missing default catalogue services');
         $this->line('  php artisan bms:reset-data seed --force    Load / refresh demo sample data');
         $this->line('  php artisan bms:reset-data demo --force    Clear everything, then load demo data');
         $this->newLine();

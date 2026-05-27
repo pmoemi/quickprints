@@ -47,9 +47,10 @@ class StaffController extends BmsController
         $data['active'] = true;
         $data['color'] = '#'.substr(md5($data['email']), 0, 6);
 
-        $staff = Staff::query()->create($data);
-
         $password = $data['password'] ?? ('QP@'.bin2hex(random_bytes(4)).'1!');
+        unset($data['password']); // staff table has no password column
+
+        $staff = Staff::query()->create($data);
         $user = User::query()->updateOrCreate(
             ['email' => strtolower($data['email'])],
             [
@@ -61,9 +62,11 @@ class StaffController extends BmsController
         );
         $staff->update(['user_id' => $user->id]);
 
+        $showPassword = $request->input('password') ? null : $password;
+
         return redirect()->route('bms.staff.index')
             ->with('success', 'Staff added.')
-            ->with('staff_password', $data['password'] ? null : $password)
+            ->with('staff_password', $showPassword)
             ->with('staff_email', $data['email']);
     }
 

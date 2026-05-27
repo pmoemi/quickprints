@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Bms;
 use App\Services\BmsDataResetService;
 use App\Support\BmsAudit;
 use App\Support\DemoData;
+use App\Support\ServicesCatalog;
+use App\Models\ServiceItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,7 +26,21 @@ class MaintenanceController extends BmsController
             'canResetData' => \App\Support\BmsPermissions::allowed(auth()->user()?->role, 'settings', 'delete'),
             'demoLogin' => DemoData::DEFAULT_ADMIN_EMAIL,
             'demoPassword' => DemoData::DEFAULT_ADMIN_PASSWORD,
+            'serviceCount' => ServiceItem::query()->count(),
+            'catalogTotal' => ServicesCatalog::totalItems(),
         ]);
+    }
+
+    public function seedServices(): RedirectResponse
+    {
+        $this->authorizeBms('settings', 'delete');
+
+        $added = ServicesCatalog::seedMissing();
+        $total = ServiceItem::query()->count();
+
+        BmsAudit::log("Seeded services catalogue (+{$added}, {$total} total)");
+
+        return back()->with('success', "Services catalogue updated — {$added} new service(s) added ({$total} total).");
     }
 
     public function clearData(Request $request, BmsDataResetService $reset): RedirectResponse
