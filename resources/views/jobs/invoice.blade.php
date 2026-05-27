@@ -86,7 +86,7 @@ body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;
     &#128444; {{ $artworkUrl ? 'Replace Artwork' : 'Upload Artwork' }}
   </button>
   <button onclick="window.print()" class="tbtn tbtn-neutral">&#128438; Print</button>
-  <a href="{{ url()->previous() }}" class="tbtn tbtn-neutral">&#8592; Back</a>
+  <button type="button" onclick="goInvoiceBack(@json($backUrl))" class="tbtn tbtn-neutral">&#8592; Back</button>
 </div>
 
 {{-- Artwork panel (collapsible) --}}
@@ -178,6 +178,15 @@ body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;
     el.textContent = msg;
     el.style.color = color;
   }
+
+  window.goInvoiceBack = function (fallbackUrl) {
+    var ref = document.referrer || '';
+    if (window.history.length > 1 && ref.indexOf(window.location.origin) === 0 && ref.indexOf('/invoice') === -1) {
+      history.back();
+      return;
+    }
+    window.location.href = fallbackUrl;
+  };
 })();
 </script>
 </body>

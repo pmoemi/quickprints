@@ -130,15 +130,16 @@ class JobController extends BmsController
         ));
     }
 
-    public function invoice(string $job): View
+    public function invoice(Request $request, string $job): View
     {
         $this->authorizeBms('jobs', 'read');
 
         $job      = PrintJob::query()->findOrFail($job);
         $client   = $job->client_id ? Client::query()->find($job->client_id) : null;
         $settings = $this->bmsSettings();
+        $backUrl  = $this->resolveBackUrl($request, route('bms.jobs.show', $job->id));
 
-        return view('jobs.invoice', compact('job', 'client', 'settings'));
+        return view('jobs.invoice', compact('job', 'client', 'settings', 'backUrl'));
     }
 
     public function invoicePdf(string $job): Response

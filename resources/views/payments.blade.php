@@ -55,7 +55,7 @@
             <td>
               <div style="display:flex;gap:4px;">
                 <a href="{{ route('bms.jobs.show', $job->id) }}" class="btn btn-secondary btn-sm">View</a>
-                <a href="{{ route('bms.jobs.invoice', $job->id) }}" class="btn btn-secondary btn-sm" target="_blank">Invoice</a>
+                <a href="{{ route('bms.jobs.invoice', $job->id) }}?return={{ urlencode(url()->current()) }}" class="btn btn-secondary btn-sm">Invoice</a>
               </div>
             </td>
           </tr>
@@ -86,7 +86,7 @@
             <td>
               <div style="display:flex;gap:4px;">
                 <a href="{{ route('bms.jobs.show', $job->id) }}" class="btn btn-secondary btn-sm">View</a>
-                <a href="{{ route('bms.jobs.invoice', $job->id) }}" class="btn btn-secondary btn-sm" target="_blank">Invoice</a>
+                <a href="{{ route('bms.jobs.invoice', $job->id) }}?return={{ urlencode(url()->current()) }}" class="btn btn-secondary btn-sm">Invoice</a>
               </div>
             </td>
           </tr>

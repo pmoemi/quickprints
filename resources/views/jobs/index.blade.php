@@ -84,7 +84,7 @@
             <td>
               <div style="display:flex;gap:4px;">
                 <a href="{{ route('bms.jobs.show', $job->id) }}" class="btn btn-secondary btn-sm">View</a>
-                <a href="{{ route('bms.jobs.invoice', $job->id) }}" class="btn btn-secondary btn-sm" title="Invoice">Invoice</a>
+                <a href="{{ route('bms.jobs.invoice', $job->id) }}?return={{ urlencode(url()->current()) }}" class="btn btn-secondary btn-sm" title="Invoice">Invoice</a>
                 <a href="{{ route('bms.jobs.edit', $job->id) }}" class="btn btn-secondary btn-sm">Edit</a>
               </div>
             </td>

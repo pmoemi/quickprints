@@ -9,7 +9,7 @@
     <div class="page-subtitle">{{ $job->title }}</div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    <a href="{{ route('bms.jobs.invoice', $job->id) }}" class="btn btn-secondary btn-sm" target="_blank">🖨 Invoice</a>
+    <a href="{{ route('bms.jobs.invoice', $job->id) }}?return={{ urlencode(url()->current()) }}" class="btn btn-secondary btn-sm">🖨 Invoice</a>
     <a href="{{ route('bms.jobs.edit', $job->id) }}" class="btn btn-secondary">Edit</a>
     <a href="{{ route('bms.jobs.index') }}" class="btn btn-secondary">← Back</a>
   </div>

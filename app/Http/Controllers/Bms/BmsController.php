@@ -128,6 +128,44 @@ abstract class BmsController extends Controller
         ];
     }
 
+    protected function isSafeInternalUrl(?string $url): bool
+    {
+        if (! $url) {
+            return false;
+        }
+
+        if (str_starts_with($url, '/')) {
+            return true;
+        }
+
+        $appHost = parse_url(url('/'), PHP_URL_HOST);
+        $urlHost = parse_url($url, PHP_URL_HOST);
+
+        return $appHost && $urlHost && strcasecmp($appHost, $urlHost) === 0;
+    }
+
+    protected function normalizeInternalUrl(string $url): string
+    {
+        return str_starts_with($url, '/') ? url($url) : $url;
+    }
+
+    protected function resolveBackUrl(Request $request, string $fallback, string $excludePath = '/invoice'): string
+    {
+        if ($return = $request->query('return')) {
+            $decoded = urldecode($return);
+            if ($this->isSafeInternalUrl($decoded) && ! str_contains($decoded, $excludePath)) {
+                return $this->normalizeInternalUrl($decoded);
+            }
+        }
+
+        $previous = url()->previous();
+        if ($this->isSafeInternalUrl($previous) && ! str_contains($previous, $excludePath)) {
+            return $this->normalizeInternalUrl($previous);
+        }
+
+        return $fallback;
+    }
+
     protected function branchNames(): array
     {
         return $this->bmsSettings()['branches'] ?? BmsSettingsDefaults::all()['branches'];
