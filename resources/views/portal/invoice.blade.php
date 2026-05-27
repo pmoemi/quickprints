@@ -77,7 +77,7 @@ body{
   .toolbar-actions .tbtn{flex:1 1 calc(50% - 4px);min-width:0;font-size:12px;padding:10px 12px}
   .toolbar-actions .tbtn-neutral:last-child{flex:1 1 100%}
   .doc-outer{margin:12px;border-radius:8px}
-  .doc-inner{padding:16px!important}
+  .doc-inner{padding:16px!important;overflow-x:hidden}
 }
 @media(max-width:400px){
   .toolbar-actions .tbtn{flex:1 1 100%}

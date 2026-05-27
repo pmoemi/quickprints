@@ -425,6 +425,96 @@ table.fml-vat th { font-family: 'DejaVu Sans', Arial, sans-serif; }
 
         if ($forWeb) {
             $css .= "
+@media (max-width: 640px) {
+body { overflow-x: hidden; }
+.doc-wrap { max-width: 100%; padding: 16px !important; }
+.doc-header,
+.doc-header-left,
+.doc-header-right,
+.info-grid,
+.info-col,
+.fml-hdr,
+.fml-brand,
+.fml-meta,
+.fml-bill-row,
+.fml-bill-cell,
+.fml-proj-cell,
+.fml-footer,
+.fml-fl,
+.fml-fr {
+    display: block !important;
+    width: 100% !important;
+}
+.doc-header-right,
+.doc-header-band .doc-header-right {
+    text-align: left !important;
+    padding-left: 0 !important;
+    margin-top: 14px;
+}
+.info-col + .info-col,
+.fml-meta,
+.fml-proj-cell {
+    padding-left: 0 !important;
+    margin-top: 14px;
+}
+.doc-company-name { font-size: 17px; overflow-wrap: anywhere; }
+.doc-company-sub,
+.info-value,
+.fml-address,
+.fml-bill-body,
+.pay-box { overflow-wrap: anywhere; }
+.doc-ref { font-size: 18px; }
+.doc-header-band {
+    display: block !important;
+    width: auto !important;
+    margin: -16px -16px 20px -16px !important;
+    padding: 20px 16px !important;
+}
+table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+thead,
+tbody,
+tr {
+    min-width: max-content;
+}
+thead th,
+tbody td {
+    white-space: nowrap;
+}
+tbody td:first-child,
+table.fml-items tbody td:nth-child(2) {
+    white-space: normal;
+    min-width: 180px;
+}
+.totals-table {
+    display: table;
+    width: 100% !important;
+    margin-left: 0 !important;
+}
+.fml-fl {
+    border-right: none !important;
+    border-bottom: 1px solid #111;
+}
+.fml-fr {
+    border-top: 0;
+}
+.fml-tot {
+    display: flex !important;
+    justify-content: space-between;
+    gap: 12px;
+}
+.fml-tot-k,
+.fml-tot-v {
+    display: block !important;
+}
+.doc-footer {
+    overflow-wrap: anywhere;
+}
+}
 @media print { .toolbar { display: none !important; } .doc { margin: 0; border-radius: 0; box-shadow: none; } }
 ";
         }
@@ -840,6 +930,7 @@ table.fml-vat th { font-family: 'DejaVu Sans', Arial, sans-serif; }
         return "<!DOCTYPE html>
 <html lang=\"en\">
 <head><meta charset=\"UTF-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
 <title>" . ucfirst($docType) . " Preview</title>
 <style>{$css}</style></head>
 <body>
@@ -939,6 +1030,7 @@ table.fml-vat th { font-family: 'DejaVu Sans', Arial, sans-serif; }
 <html lang=\"en\">
 <head>
 <meta charset=\"UTF-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
 <title>" . ucfirst($docType) . " Preview</title>
 <style>{$css}</style>
 </head>

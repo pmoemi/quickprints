@@ -62,6 +62,7 @@ body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;
   .toolbar-title{font-size:12px;width:100%;margin-bottom:2px;}
   .tbtn{padding:6px 10px;font-size:12px;}
   .doc-outer{margin:0;border-radius:0;box-shadow:none;}
+  .doc-inner{padding:16px!important;overflow-x:hidden;}
   .artwork-panel{margin:8px;border-radius:8px;}
 }
 </style>
