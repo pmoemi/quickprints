@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bms;
 
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\BmsSettingsDefaults;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -139,10 +140,7 @@ class StaffController extends BmsController
     /** @return list<string> */
     private function roles(): array
     {
-        return [
-            'Receptionist', 'Designer', 'Sales', 'Welder', 'CNC Operator',
-            'Laser Operator', 'Fabrication Staff', 'Operations Manager', 'General Manager', 'Admin',
-        ];
+        return array_keys(BmsSettingsDefaults::roles());
     }
 }
 
