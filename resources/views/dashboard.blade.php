@@ -179,6 +179,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
   $completionRate = $jobs->count() > 0 ? round($jobs->whereIn('stage', ['installed','paid'])->count() / $jobs->count() * 100) : 0;
   $branchLabel = $bmsBranch === 'all' ? 'All Branches' : $bmsBranch;
   $firstName = explode(' ', $bmsUser?->name ?? 'there')[0];
+  $showSummaries = $canViewDashboardSummaries ?? false;
 @endphp
 
 <div class="dash">
@@ -191,6 +192,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
         <div class="dash-hero-title">{{ $branchLabel }} · {{ now()->format('D, d M Y') }}</div>
         <div class="dash-hero-sub">Welcome back, {{ $firstName }} — {{ $activeJobs }} jobs in production, {{ $completionRate }}% delivered</div>
       </div>
+      @if($showSummaries)
       <div class="dash-hero-metrics">
         <div class="dash-hero-metric">
           <div class="lbl">Today's Sales</div>
@@ -214,6 +216,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
           <div class="sub">{{ $bmsCurrency }} {{ number_format($monthRevenue) }} in 30 days</div>
         </div>
       </div>
+      @endif
     </div>
   </div>
 
@@ -242,6 +245,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
     <div>
       {{-- Revenue chart --}}
       <div class="dash-panel">
+        @if($showSummaries)
         <div class="dash-panel-hd">
           <div>
             <div class="dash-panel-title">Revenue Pulse</div>
@@ -252,9 +256,10 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
         <div class="dash-chart">
           <canvas id="chartRevenue"></canvas>
         </div>
+        @endif
 
         {{-- Production flow --}}
-        <div class="dash-flow">
+        <div class="dash-flow"@unless($showSummaries) style="margin-top:0;padding-top:0;border-top:none;"@endunless>
           <div class="dash-panel-hd" style="margin-bottom:12px;">
             <div>
               <div class="dash-panel-title">Production Flow</div>
@@ -315,7 +320,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
 
     {{-- Sidebar --}}
     <div class="dash-sidebar">
-      @if($pendingRevenue > 0)
+      @if($showSummaries && $pendingRevenue > 0)
         <div class="dash-alert danger">
           <div class="dash-alert-ico">💳</div>
           <div class="dash-alert-body">
@@ -348,6 +353,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
         </div>
       @endif
 
+      @if($showSummaries)
       <div class="dash-panel">
         <div class="dash-panel-hd">
           <div>
@@ -370,6 +376,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
           @endforeach
         </div>
       </div>
+      @endif
 
       <div class="dash-panel">
         <div class="dash-panel-hd">
@@ -449,7 +456,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
             <th>Title</th>
             <th>Client</th>
             <th>Branch</th>
-            <th>Amount</th>
+            @if($showSummaries)<th>Amount</th>@endif
             <th>Stage</th>
           </tr>
         </thead>
@@ -460,11 +467,11 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
               <td>{{ Str::limit($job->title, 35) }}</td>
               <td class="text-muted">{{ $clients->get($job->client_id)?->name ?? '—' }}</td>
               <td class="text-muted">{{ $job->branch ?? '—' }}</td>
-              <td class="mono">{{ $bmsCurrency }} {{ number_format($job->amount) }}</td>
+              @if($showSummaries)<td class="mono">{{ $bmsCurrency }} {{ number_format($job->amount) }}</td>@endif
               <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
             </tr>
           @empty
-            <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">No jobs yet — create your first order</td></tr>
+            <tr><td colspan="{{ $showSummaries ? 6 : 5 }}" style="text-align:center;color:var(--text3);padding:32px;">No jobs yet — create your first order</td></tr>
           @endforelse
         </tbody>
       </table>
@@ -505,6 +512,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
   };
 
   // Revenue — smooth area chart
+  @if($showSummaries)
   const revCanvas = document.getElementById('chartRevenue');
   const revGrad = revCanvas.getContext('2d').createLinearGradient(0, 0, 0, 280);
   revGrad.addColorStop(0, light ? `rgba(${accentRgb}, 0.2)` : `rgba(${accentRgb}, 0.35)`);
@@ -546,6 +554,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
       }
     }
   });
+  @endif
 
   // Stage — polar area (distinct from doughnut)
   const stageLabels = @json(array_values($stages));

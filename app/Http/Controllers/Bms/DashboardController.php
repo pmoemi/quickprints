@@ -6,7 +6,7 @@ use App\Models\Client;
 use App\Models\InventoryItem;
 use App\Models\PrintJob;
 use App\Models\SalesLog;
-use Carbon\Carbon;
+use App\Support\BmsPermissions;
 use Illuminate\View\View;
 
 class DashboardController extends BmsController
@@ -83,6 +83,7 @@ class DashboardController extends BmsController
             'prevWeekRevenue' => $prevWeekRevenue,
             'monthRevenue' => $monthRevenue,
             'clients' => $clients,
+            'canViewDashboardSummaries' => BmsPermissions::canViewDashboardSummaries(auth()->user()?->role),
         ]);
     }
 }

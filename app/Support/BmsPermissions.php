@@ -149,6 +149,28 @@ class BmsPermissions
     }
 
     /**
+     * Returns true if the role can see financial dashboard summaries
+     * (sales, revenue, branch rankings, payment alerts).
+     * Admin always has this capability.
+     */
+    public static function canViewDashboardSummaries(?string $role): bool
+    {
+        if (! $role) {
+            return false;
+        }
+
+        if ($role === 'Admin') {
+            return true;
+        }
+
+        $dynamicRoles = BmsSettingsDefaults::roles();
+        $defaults     = BmsSettingsDefaults::all()['roles'][$role] ?? [];
+        $roleData     = $dynamicRoles[$role] ?? [];
+
+        return (bool) ($roleData['viewDashboardSummaries'] ?? $defaults['viewDashboardSummaries'] ?? false);
+    }
+
+    /**
      * Returns true if the given role is allowed to reset staff passwords.
      * Admin always has this capability; other roles need `resetStaffPasswords = true`.
      */

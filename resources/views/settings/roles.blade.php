@@ -138,6 +138,13 @@
                 <span style="color:var(--text3);"> — can reset login passwords for other staff members</span>
               </span>
             </label>
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;display:flex;">
+              <input type="checkbox" name="viewDashboardSummaries" value="1" {{ ($rd['viewDashboardSummaries'] ?? false) ? 'checked' : '' }}>
+              <span>
+                <strong>Dashboard Financial Summaries</strong>
+                <span style="color:var(--text3);"> — can see sales, revenue, branch rankings, and payment totals on the dashboard</span>
+              </span>
+            </label>
           </div>
 
           <div style="display:flex;gap:8px;margin-top:16px;">
@@ -204,11 +211,18 @@
                 <span style="color:var(--text3);"> — can view and switch between all branches</span>
               </span>
             </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:10px;">
               <input type="checkbox" name="resetStaffPasswords" value="1">
               <span>
                 <strong>Reset Staff Passwords</strong>
                 <span style="color:var(--text3);"> — can reset login passwords for other staff members</span>
+              </span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+              <input type="checkbox" name="viewDashboardSummaries" value="1">
+              <span>
+                <strong>Dashboard Financial Summaries</strong>
+                <span style="color:var(--text3);"> — can see sales, revenue, branch rankings, and payment totals on the dashboard</span>
               </span>
             </label>
           </div>
