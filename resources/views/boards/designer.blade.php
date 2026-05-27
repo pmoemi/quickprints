@@ -12,7 +12,7 @@
   <div class="tbl-wrap">
     <table>
       <thead>
-        <tr><th>Job ID</th><th>Title</th><th>Client</th><th>Branch</th><th>Stage</th><th>Priority</th><th>Deadline</th><th>Actions</th></tr>
+        <tr><th>Job ID</th><th>Title</th><th>Client</th><th>Branch</th>@if($showDesignerColumn ?? false)<th>Designer</th>@endif<th>Stage</th><th>Priority</th><th>Deadline</th><th>Actions</th></tr>
       </thead>
       <tbody>
         @forelse($jobs as $job)
@@ -22,6 +22,9 @@
             <td style="font-weight:600;">{{ $job->title }}</td>
             <td>{{ $client?->name ?? '—' }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $job->branch }}</td>
+            @if($showDesignerColumn ?? false)
+            <td style="font-size:12px;">{{ $designers[$job->designer_id]->name ?? '—' }}</td>
+            @endif
             <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
             <td>
               @if($job->priority === 'high') <span class="p-high">HIGH</span>
@@ -45,7 +48,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🎨</div><p>No jobs in design queue</p></div></td></tr>
+          <tr><td colspan="{{ ($showDesignerColumn ?? false) ? 9 : 8 }}"><div class="empty-state"><div class="empty-icon">🎨</div><p>No jobs in design queue</p></div></td></tr>
         @endforelse
       </tbody>
     </table>

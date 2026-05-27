@@ -124,6 +124,7 @@ Route::name('bms.')->group(function () {
         Route::get('messages/{id}', [MessageController::class, 'show'])->name('messages.show')->middleware('bms.page:messages');
 
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index')->middleware('bms.page:notifications');
+        Route::get('notifications/poll', [NotificationController::class, 'poll'])->name('notifications.poll');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all')->middleware('bms.page:notifications');
         Route::post('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read')->middleware('bms.page:notifications');
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bms;
 
 use App\Models\PrintJob;
 use App\Models\SalesLog;
+use App\Services\JobDesignerNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -28,6 +29,7 @@ class SalesLogController extends BmsController
                 'branch' => $this->defaultAssignableBranch(),
             ]),
             'branches' => $this->assignableBranchNames(),
+            'designers' => $this->assignableDesigners($this->defaultAssignableBranch()),
         ]);
     }
 
@@ -46,6 +48,7 @@ class SalesLogController extends BmsController
             'pay_method' => 'nullable|string|max:40',
             'pay_status' => 'nullable|string|in:pending,partial,paid',
             'notes' => 'nullable|string',
+            'designer_id' => $this->designerIdRules(true, $request->input('branch')),
         ]);
 
         $jobId = $this->nextJobId($data['branch'] ?? null);
@@ -68,19 +71,22 @@ class SalesLogController extends BmsController
             default => 0.0,
         };
 
-        PrintJob::query()->create([
+        $job = PrintJob::query()->create([
             'id' => $jobId,
             'client_id' => null,
             'title' => $data['job_desc'],
             'branch' => $data['branch'],
             'category' => $data['category'] ?? null,
-            'stage' => 'waiting',
+            'stage' => 'designing',
+            'designer_id' => $data['designer_id'],
             'amount' => $amount,
             'amount_paid' => $amountPaid,
             'priority' => 'medium',
             'notes' => $data['notes'] ?? null,
-            'history' => [],
+            'history' => [['action' => 'Job created from sales log and assigned to designer', 'by' => $request->user()->name, 'at' => now()->toIso8601String()]],
         ]);
+
+        JobDesignerNotificationService::notifyAssigned($job, $request->user());
 
         return redirect()->route('bms.saleslog.index')->with('success', "Sale logged and job {$jobId} created.");
     }

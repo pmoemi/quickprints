@@ -9,6 +9,7 @@ use App\Support\BmsNavigation;
 use App\Support\BmsSettingsDefaults;
 use App\Models\Client;
 use App\Models\InventoryItem;
+use App\Models\Staff;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -286,6 +287,36 @@ abstract class BmsController extends Controller
         $max = $modelClass::query()->max('id');
 
         return ($max ? (int) $max : 0) + 1;
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Staff> */
+    protected function assignableDesigners(?string $branch = null): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = Staff::query()
+            ->where('active', true)
+            ->where('role', 'Designer')
+            ->orderBy('name');
+
+        $scopeBranch = $branch ?? $this->branchFilter();
+        if ($scopeBranch) {
+            $query->where(function ($q) use ($scopeBranch) {
+                $q->where('branch', $scopeBranch)->orWhere('branch', 'all');
+            });
+        }
+
+        return $query->get();
+    }
+
+    /** @return list<mixed> */
+    protected function designerIdRules(bool $required = false, ?string $branch = null): array
+    {
+        $ids = $this->assignableDesigners($branch)->pluck('id')->all();
+
+        return [
+            $required ? 'required' : 'nullable',
+            'integer',
+            Rule::in($ids),
+        ];
     }
 }
 

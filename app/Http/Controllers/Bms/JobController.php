@@ -7,10 +7,10 @@ use App\Mail\JobInvoiceMail;
 use App\Mail\JobStatusMail;
 use App\Models\Client;
 use App\Models\PrintJob;
-use App\Models\Staff;
 use App\Services\BmsMailer;
 use App\Support\BmsPermissions;
 use App\Services\JobDeleteOtpService;
+use App\Services\JobDesignerNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,14 +52,14 @@ class JobController extends BmsController
 
         return view('jobs.form', [
             'job' => new PrintJob([
-                'stage' => 'waiting',
+                'stage' => 'designing',
                 'priority' => 'medium',
                 'paid' => false,
                 'branch' => $this->defaultAssignableBranch(),
             ]),
             'clients' => $this->scopedClientsQuery()->orderBy('name')->get(),
             'branches' => $this->assignableBranchNames(),
-            'staff' => Staff::query()->where('active', true)->orderBy('name')->get(),
+            'designers' => $this->assignableDesigners($this->defaultAssignableBranch()),
         ]);
     }
 
@@ -72,22 +72,23 @@ class JobController extends BmsController
             'title' => 'required|string|max:255',
             'branch' => $this->assignableBranchRules(),
             'category' => 'nullable|string|max:80',
-            'stage' => 'nullable|string|max:40',
             'priority' => 'nullable|string|max:20',
             'amount' => 'nullable|numeric|min:0',
             'amount_paid' => 'nullable|numeric|min:0',
             'deadline' => 'nullable|date',
             'notes' => 'nullable|string',
-            'designer_id' => 'nullable|integer',
+            'designer_id' => $this->designerIdRules(true, $request->input('branch')),
             'sales_rep_id' => 'nullable|integer',
         ]);
 
         $data['id'] = $this->nextJobId($data['branch'] ?? null);
-        $data['stage'] = $data['stage'] ?? 'waiting';
+        $data['stage'] = 'designing';
         $data['paid'] = false;
-        $data['history'] = [['action' => 'Job created', 'by' => $request->user()->name, 'at' => now()->toIso8601String()]];
+        $data['history'] = [['action' => 'Job created and assigned to designer', 'by' => $request->user()->name, 'at' => now()->toIso8601String()]];
 
         $job = PrintJob::query()->create($data);
+
+        JobDesignerNotificationService::notifyAssigned($job, $request->user());
 
         // Email client on job creation
         $settings = $this->bmsSettings();
@@ -230,7 +231,7 @@ class JobController extends BmsController
             'job' => $job,
             'clients' => $this->scopedClientsQuery()->orderBy('name')->get(),
             'branches' => $this->assignableBranchNames(),
-            'staff' => Staff::query()->where('active', true)->orderBy('name')->get(),
+            'designers' => $this->assignableDesigners($job->branch),
         ]);
     }
 
@@ -252,7 +253,7 @@ class JobController extends BmsController
             'paid' => 'nullable|boolean',
             'deadline' => 'nullable|date',
             'notes' => 'nullable|string',
-            'designer_id' => 'nullable|integer',
+            'designer_id' => $this->designerIdRules(false, $request->input('branch', $job->branch)),
             'sales_rep_id' => 'nullable|integer',
         ]);
 
@@ -285,7 +286,12 @@ class JobController extends BmsController
         }
 
         $oldStage = $job->stage;
+        $oldDesignerId = $job->designer_id;
         $job->update($data);
+
+        if (array_key_exists('designer_id', $data) && (int) ($data['designer_id'] ?? 0) !== (int) $oldDesignerId && $data['designer_id']) {
+            JobDesignerNotificationService::notifyAssigned($job->fresh(), $request->user());
+        }
 
         // Email client on stage change
         if (isset($data['stage']) && $data['stage'] !== $oldStage) {

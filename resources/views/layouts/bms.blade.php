@@ -550,8 +550,8 @@ tr:last-child td{border-bottom:none;}
   <button class="btn-topbar" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">{{ ($bmsSettings['theme'] ?? 'dark') === 'light' ? '🌙' : '☀' }}</button>
 
   @php $unreadNotifs = isset($bmsUser) ? \App\Models\BmsNotification::where('user_id', $bmsUser->id ?? 0)->whereNull('read_at')->count() : 0; @endphp
-  <a href="{{ route('bms.notifications.index') }}" class="notif-btn" title="Notifications">
-    🔔@if($unreadNotifs > 0)<span class="notif-badge">{{ $unreadNotifs }}</span>@endif
+  <a href="{{ route('bms.notifications.index') }}" class="notif-btn" id="notif-btn" title="Notifications">
+    🔔<span class="notif-badge" id="notif-badge" @if($unreadNotifs <= 0) style="display:none;" @endif>{{ $unreadNotifs > 0 ? $unreadNotifs : '' }}</span>
   </a>
 
   <form method="POST" action="{{ route('bms.logout') }}" style="display:inline;">
@@ -954,6 +954,91 @@ document.addEventListener('DOMContentLoaded', () => {
   if (shouldShowPrompt()) {
     showReinstallPrompt();
   }
+})();
+</script>
+<script>
+(function () {
+  var pollUrl = @json(route('bms.notifications.poll'));
+  var storageKey = 'qp:notif:last-id';
+  var btn = document.getElementById('notif-btn');
+  var badge = document.getElementById('notif-badge');
+  if (!pollUrl || !btn) return;
+
+  var lastId = 0;
+  try {
+    lastId = parseInt(localStorage.getItem(storageKey) || '0', 10) || 0;
+  } catch (e) {}
+
+  function playAssignSound() {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [880, 1100].forEach(function (freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.value = 0.08;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        var start = ctx.currentTime + i * 0.15;
+        osc.start(start);
+        osc.stop(start + 0.12);
+      });
+    } catch (e) {}
+  }
+
+  function updateBadge(count) {
+    if (!badge) return;
+    if (count > 0) {
+      badge.textContent = String(count);
+      badge.style.display = '';
+    } else {
+      badge.textContent = '';
+      badge.style.display = 'none';
+    }
+  }
+
+  function handlePoll(data, initial) {
+    if (!data) return;
+    updateBadge(data.unread || 0);
+
+    var items = data.items || [];
+    var latest = data.latest_id || 0;
+    var played = false;
+    var maxId = lastId;
+
+    items.forEach(function (item) {
+      if (item.id > maxId) maxId = item.id;
+      if (!initial && item.id > lastId && item.type === 'job_assigned') {
+        played = true;
+      }
+    });
+
+    if (latest > maxId) maxId = latest;
+
+    if (!initial && played) {
+      playAssignSound();
+    }
+
+    if (maxId > lastId) {
+      lastId = maxId;
+      try { localStorage.setItem(storageKey, String(lastId)); } catch (e) {}
+    }
+  }
+
+  function poll(initial) {
+    var since = initial ? 0 : (lastId > 0 ? lastId : 0);
+    fetch(pollUrl + '?since=' + since, {
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) { handlePoll(data, initial); })
+      .catch(function () {});
+  }
+
+  poll(true);
+  setInterval(function () { poll(false); }, 15000);
 })();
 </script>
 @stack('scripts')

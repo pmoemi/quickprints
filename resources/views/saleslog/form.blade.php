@@ -96,6 +96,25 @@
       });
     </script>
 
+    <div class="form-row cols-2">
+      <div class="fld">
+        <label>Assigned Designer <span style="color:var(--red)">*</span></label>
+        <select name="designer_id" required>
+          <option value="">— Select designer —</option>
+          @foreach($designers as $d)
+            <option value="{{ $d->id }}" {{ old('designer_id') == $d->id ? 'selected' : '' }}>{{ $d->name }}</option>
+          @endforeach
+        </select>
+        @error('designer_id')<span style="font-size:11px;color:var(--red);">{{ $message }}</span>@enderror
+      </div>
+      <div class="fld">
+        <label>&nbsp;</label>
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text2);margin-top:2px;">
+          Job will appear on the designer board and notify the assigned designer.
+        </div>
+      </div>
+    </div>
+
     <div class="form-row">
       <div class="fld">
         <label>Notes</label>

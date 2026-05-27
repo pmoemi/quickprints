@@ -6,25 +6,41 @@ use App\Models\OpexEntry;
 use App\Models\PayrollEntry;
 use App\Models\PrintJob;
 use App\Models\SalesLog;
+use App\Models\Staff;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class BoardController extends BmsController
 {
     public function designer(): View
     {
-        $jobs = $this->scopeBranch(PrintJob::query())
+        $query = $this->scopeBranch(PrintJob::query())
             ->whereIn('stage', ['waiting', 'designing', 'approval'])
-            ->orderBy('deadline')
-            ->get();
+            ->whereNotNull('designer_id');
+
+        $user = Auth::user();
+        if ($user && $user->role === 'Designer') {
+            $staffId = Staff::query()->where('user_id', $user->id)->value('id');
+            if ($staffId) {
+                $query->where('designer_id', $staffId);
+            } else {
+                $query->whereRaw('0 = 1');
+            }
+        }
+
+        $jobs = $query->orderBy('deadline')->get();
+        $designers = Staff::query()->whereIn('id', $jobs->pluck('designer_id')->filter()->unique())->get()->keyBy('id');
 
         return view('boards/designer', [
             'title' => 'Designer Board',
             'jobs' => $jobs,
             'clients' => $this->scopedClientsKeyBy(),
+            'designers' => $designers,
+            'showDesignerColumn' => $user && $user->role !== 'Designer',
         ]);
     }
 

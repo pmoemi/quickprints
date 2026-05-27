@@ -73,22 +73,32 @@
     </div>
 
     <div class="form-row cols-3">
+      @if($editing)
       <div class="fld">
         <label>Stage</label>
         <select name="stage">
           @foreach(['waiting','designing','approval','printing','fabrication','ready','installed','paid'] as $s)
-            <option value="{{ $s }}" {{ old('stage', $job->stage ?? 'waiting') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+            <option value="{{ $s }}" {{ old('stage', $job->stage ?? 'designing') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
           @endforeach
         </select>
       </div>
+      @else
+      <input type="hidden" name="stage" value="designing">
       <div class="fld">
-        <label>Assigned Designer</label>
-        <select name="designer_id">
-          <option value="">None</option>
-          @foreach($staff as $s)
-            <option value="{{ $s->id }}" {{ old('designer_id', $job->designer_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+        <label>Stage</label>
+        <input type="text" value="Designing" disabled style="opacity:.85;cursor:not-allowed;">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">New jobs go straight to the designer board.</div>
+      </div>
+      @endif
+      <div class="fld">
+        <label>Assigned Designer <span style="color:var(--red)">*</span></label>
+        <select name="designer_id" required>
+          <option value="">— Select designer —</option>
+          @foreach($designers as $d)
+            <option value="{{ $d->id }}" {{ old('designer_id', $job->designer_id) == $d->id ? 'selected' : '' }}>{{ $d->name }}</option>
           @endforeach
         </select>
+        @error('designer_id')<span style="font-size:11px;color:var(--red);">{{ $message }}</span>@enderror
       </div>
       <div class="fld">
         <label>Deadline</label>
