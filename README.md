@@ -250,9 +250,29 @@ php artisan bms:reset-data demo --force
 
 1. Set `APP_ENV=production`, `APP_DEBUG=false`, and a strong `APP_KEY`.
 2. Configure real mail credentials (`MAIL_*`) for invoice and notification emails.
-3. Run `php artisan config:cache` and `php artisan route:cache` in production.
-4. Ensure `storage/` and `bootstrap/cache/` are writable by the web server.
-5. Use HTTPS and rotate all demo passwords.
+3. **Set the web server document root to `public/`** (e.g. `/www/wwwroot/quickprints.work/public`). Do not point the vhost at the project root on production.
+4. Ensure `storage/` and `bootstrap/cache/` are owned by the web server user (`www` on aaPanel/BT):
+
+   ```bash
+   sudo chown -R www:www storage bootstrap/cache
+   sudo chmod -R 775 storage bootstrap/cache
+   ```
+
+5. Run migrations and seed on MySQL:
+
+   ```bash
+   php artisan config:clear
+   php artisan migrate --force
+   php artisan db:seed --force
+   php artisan storage:link
+   ```
+
+6. Run `php artisan config:cache` and `php artisan route:cache` in production **after** permissions are correct.
+7. Ensure HTTPS and rotate all demo passwords.
+
+### XAMPP subdirectory
+
+If running under `http://localhost/quickprints/`, uncomment `RewriteBase /quickprints/` in the project root `.htaccess`.
 
 ---
 
