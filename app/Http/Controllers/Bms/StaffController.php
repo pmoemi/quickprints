@@ -56,6 +56,7 @@ class StaffController extends BmsController
         $data = $request->validate([
             'name'     => 'required|string|max:120',
             'email'    => 'required|email|unique:staff,email|unique:users,email',
+            'phone'    => 'nullable|string|max:30',
             'role'     => 'required|string|max:80',
             'branch'   => 'required|string|max:80',
             'salary'   => 'nullable|numeric|min:0',
@@ -137,11 +138,10 @@ class StaffController extends BmsController
             'name'   => 'required|string|max:120',
             'email'  => [
                 'required', 'email',
-                // Ignore this staff member's own email
                 \Illuminate\Validation\Rule::unique('staff', 'email')->ignore($staff->id),
-                // Ignore this staff member's linked user account
                 \Illuminate\Validation\Rule::unique('users', 'email')->ignore($linkedUserId),
             ],
+            'phone'  => 'nullable|string|max:30',
             'role'   => 'required|string|max:80',
             'branch' => 'required|string|max:80',
             'salary' => 'nullable|numeric|min:0',
