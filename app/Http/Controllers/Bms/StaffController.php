@@ -54,13 +54,19 @@ class StaffController extends BmsController
         $this->authorizeBms('staff', 'create');
 
         $data = $request->validate([
-            'name' => 'required|string|max:120',
-            'email' => 'required|email',
-            'role' => 'required|string|max:80',
-            'branch' => 'required|string|max:80',
-            'salary' => 'nullable|numeric|min:0',
+            'name'     => 'required|string|max:120',
+            'email'    => 'required|email',
+            'role'     => 'required|string|max:80',
+            'branch'   => 'required|string|max:80',
+            'salary'   => 'nullable|numeric|min:0',
             'password' => 'nullable|string|min:8',
         ]);
+
+        // Block creating staff with an email that belongs to an Admin (unless you are Admin)
+        $emailOwner = User::query()->where('email', strtolower($data['email']))->first();
+        if ($emailOwner && $emailOwner->role === 'Admin' && auth()->user()?->role !== 'Admin') {
+            return back()->withErrors(['email' => 'This email belongs to an Admin account and cannot be used here.'])->withInput();
+        }
 
         $data['id'] = $this->nextNumericId(Staff::class);
         $data['active'] = true;
@@ -70,18 +76,38 @@ class StaffController extends BmsController
         unset($data['password']); // staff table has no password column
 
         $staff = Staff::query()->create($data);
-        $user = User::query()->updateOrCreate(
-            ['email' => strtolower($data['email'])],
-            [
-                'name' => $data['name'],
-                'password' => Hash::make($password),
-                'role' => $data['role'],
-                'branch' => $data['branch'],
-            ]
-        );
-        $staff->update(['user_id' => $user->id]);
 
-        $showPassword = $request->input('password') ? null : $password;
+        $existingUser = User::query()->where('email', strtolower($data['email']))->first();
+
+        if ($existingUser) {
+            // Never overwrite an Admin user's role, name or password via staff creation
+            if ($existingUser->role === 'Admin') {
+                $staff->update(['user_id' => $existingUser->id]);
+                $showPassword = null; // Password unchanged — don't display one
+                return redirect()->route('bms.staff.index')
+                    ->with('success', 'Staff linked to existing Admin account. Password and role were not changed.');
+            }
+            // Existing non-admin user: update name/role/branch but NOT password unless one was explicitly provided
+            $updates = ['name' => $data['name'], 'role' => $data['role'], 'branch' => $data['branch']];
+            if ($request->filled('password')) {
+                $updates['password'] = Hash::make($password);
+            }
+            $existingUser->update($updates);
+            $user = $existingUser;
+            $showPassword = $request->filled('password') ? null : null; // existing account — no new password to show
+        } else {
+            // Create a brand new user account
+            $user = User::query()->create([
+                'name'     => $data['name'],
+                'email'    => strtolower($data['email']),
+                'password' => Hash::make($password),
+                'role'     => $data['role'],
+                'branch'   => $data['branch'],
+            ]);
+            $showPassword = $request->filled('password') ? null : $password;
+        }
+
+        $staff->update(['user_id' => $user->id]);
 
         return redirect()->route('bms.staff.index')
             ->with('success', 'Staff added.')
