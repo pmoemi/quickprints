@@ -91,6 +91,28 @@ body{font-family:'Inter','Segoe UI',Arial,sans-serif;background:var(--bg0);color
 #preview-head span{font-size:11px;font-weight:600;color:var(--text3);}
 #preview-frame{width:100%;flex:1;border:none;display:block;background:#fff;}
 
+/* ── Mobile: stacked layout ─────────────────── */
+@media(max-width:768px){
+  html,body{overflow:auto;}
+  #topbar{height:auto;flex-wrap:wrap;padding:8px 10px;gap:6px;}
+  .tb-title{font-size:13px;}
+  .tb-back{padding:4px 8px;font-size:11px;}
+  .doc-tabs .doc-tab{padding:4px 10px;font-size:11px;}
+  .tb-save{padding:6px 14px;font-size:12px;}
+  #main-panel{flex-direction:column;overflow:visible;}
+  #form-panel{
+    width:100%;min-width:0;
+    border-right:none;border-bottom:1px solid var(--border);
+    overflow-y:visible;
+    max-height:none;
+  }
+  #preview-panel{
+    height:420px;
+    flex-shrink:0;
+  }
+  #preview-frame{height:100%;}
+}
+
 /* ── Form component classes (mirror BMS) ────── */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px;}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);}

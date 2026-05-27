@@ -31,9 +31,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;}
-.toolbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:0;z-index:10;}
+.toolbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;position:sticky;top:0;z-index:10;}
 .toolbar-title{font-size:13px;font-weight:600;color:#64748b;margin-right:auto;}
-.tbtn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.tbtn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
 .tbtn-primary{background:{{ $accent }};color:#fff;}
 .tbtn-green{background:#16a34a;color:#fff;}
 .tbtn-blue{background:#0369a1;color:#fff;}
@@ -42,7 +42,7 @@ body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;
 .tbtn-danger{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
 .flash-ok{color:#16a34a;font-size:12px;font-weight:600;}
 .flash-err{color:#dc2626;font-size:12px;}
-.doc-outer{max-width:800px;margin:28px auto;background:#fff;border-radius:10px;box-shadow:0 4px 28px rgba(0,0,0,.09);overflow:hidden;}
+.doc-outer{max-width:800px;margin:20px auto;background:#fff;border-radius:10px;box-shadow:0 4px 28px rgba(0,0,0,.09);overflow:hidden;}
 .doc-inner{padding:{{ $engine->marginShorthand() }};}
 {!! $engine->css(true) !!}
 .doc-header{margin-bottom:0;}
@@ -54,6 +54,16 @@ body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;
 .artwork-upload-zone p{font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500;}
 .artwork-file-input{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .artwork-file-input input[type=file]{font-size:12px;color:#374151;flex:1;}
+
+/* Mobile responsive */
+@media(max-width:680px){
+  body{background:#fff;}
+  .toolbar{padding:8px 10px;gap:5px;position:relative;}
+  .toolbar-title{font-size:12px;width:100%;margin-bottom:2px;}
+  .tbtn{padding:6px 10px;font-size:12px;}
+  .doc-outer{margin:0;border-radius:0;box-shadow:none;}
+  .artwork-panel{margin:8px;border-radius:8px;}
+}
 </style>
 </head>
 <body>
