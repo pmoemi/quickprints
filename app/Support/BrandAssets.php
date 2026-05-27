@@ -36,10 +36,22 @@ class BrandAssets
         return self::publicUrl($settings['favicon_url'] ?? null);
     }
 
-    /** PWA / install icon — uploaded logo for the active theme, or built-in fallback. */
-    public static function pwaIconUrl(array $settings, string $theme = 'dark'): string
+    /** Home-screen / manifest PWA icon — uploaded favicon, or built-in fallback. */
+    public static function pwaHomeIconUrl(array $settings): string
+    {
+        return self::faviconUrl($settings) ?? asset('pwa-icon.svg');
+    }
+
+    /** Logo on in-app splash and login loader screens. */
+    public static function pwaSplashLogoUrl(array $settings, string $theme = 'dark'): string
     {
         return self::logoForTheme($settings, $theme) ?? asset('pwa-icon.svg');
+    }
+
+    /** @deprecated Use pwaHomeIconUrl() or pwaSplashLogoUrl() explicitly. */
+    public static function pwaIconUrl(array $settings, string $theme = 'dark'): string
+    {
+        return self::pwaHomeIconUrl($settings);
     }
 
     public static function faviconMime(?string $url): string

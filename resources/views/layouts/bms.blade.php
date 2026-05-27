@@ -579,7 +579,7 @@ tr:last-child td{border-bottom:none;}
 <div class="pwa-install-banner" id="pwa-install-banner" role="region" aria-label="Install QuickPrints app" aria-hidden="true">
   <div class="pwa-install-copy">
     <div class="pwa-install-icon">
-      <img src="{{ \App\Support\BrandAssets::pwaIconUrl($bmsSettings, $bmsSettings['theme'] ?? 'dark') }}" alt="">
+      <img src="{{ \App\Support\BrandAssets::pwaHomeIconUrl($bmsSettings) }}" alt="">
     </div>
     <div>
       <div class="pwa-install-title">Install QuickPrints</div>
@@ -597,7 +597,7 @@ tr:last-child td{border-bottom:none;}
 <div id="page-loader"><div id="page-loader-bar"></div></div>
 
 <div id="pwa-splash" aria-hidden="true">
-  <img src="{{ \App\Support\BrandAssets::pwaIconUrl($bmsSettings, $bmsSettings['theme'] ?? 'dark') }}" alt="">
+  <img src="{{ \App\Support\BrandAssets::pwaSplashLogoUrl($bmsSettings, $bmsSettings['theme'] ?? 'dark') }}" alt="">
   <div id="pwa-splash-label">Loading…</div>
 </div>
 
@@ -762,8 +762,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if ('serviceWorker' in navigator) {
+    var swRefreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (swRefreshing) return;
+      swRefreshing = true;
+      window.location.reload();
+    });
+
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register(@json(asset('sw.js'))).catch(function() {});
+      navigator.serviceWorker.register(@json(asset('sw.js')) + '?v=3').then(function(reg) {
+        reg.update();
+        document.addEventListener('visibilitychange', function() {
+          if (document.visibilityState === 'visible') reg.update();
+        });
+      }).catch(function() {});
     });
   }
 

@@ -2,7 +2,8 @@
   use App\Support\BrandAssets;
   $pwaSettings = $settings ?? ($bmsSettings ?? []);
   $pwaTheme = $pwaSettings['theme'] ?? 'dark';
-  $pwaIcon = BrandAssets::pwaIconUrl($pwaSettings, $pwaTheme);
+  $pwaHomeIcon = BrandAssets::pwaHomeIconUrl($pwaSettings);
+  $pwaAssetVersion = substr(md5($pwaHomeIcon . BrandAssets::pwaSplashLogoUrl($pwaSettings, $pwaTheme)), 0, 8);
 @endphp
-<link rel="manifest" href="{{ route('pwa.manifest') }}">
-<link rel="apple-touch-icon" href="{{ $pwaIcon }}">
+<link rel="manifest" href="{{ route('pwa.manifest') }}?v={{ $pwaAssetVersion }}">
+<link rel="apple-touch-icon" href="{{ $pwaHomeIcon }}">

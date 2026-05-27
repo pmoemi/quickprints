@@ -14,7 +14,7 @@ class PwaController extends Controller
     {
         $all     = $settings->all();
         $brand   = BrandColors::fromSettings($all);
-        $iconUrl = BrandAssets::pwaIconUrl($all, $all['theme'] ?? 'dark');
+        $iconUrl = BrandAssets::pwaHomeIconUrl($all);
         $company = trim((string) ($all['company_name'] ?? 'QuickPrints')) ?: 'QuickPrints';
 
         return response()->json([

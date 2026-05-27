@@ -54,10 +54,10 @@ input{font-family:var(--font);outline:none;}
 {{-- Loader overlay --}}
 <div id="loading">
   @php
-    $pwaIcon = \App\Support\BrandAssets::pwaIconUrl($settings, $settings['theme'] ?? 'dark');
+    $pwaLogo = \App\Support\BrandAssets::pwaSplashLogoUrl($settings, $settings['theme'] ?? 'dark');
     $parts = explode(' ', strtoupper($settings['company_name'] ?? 'QUICK PRINTS'), 2);
   @endphp
-  <img src="{{ $pwaIcon }}" alt="" class="loader-icon">
+  <img src="{{ $pwaLogo }}" alt="" class="loader-icon">
   <div class="loader-logo">{{ $parts[0] }}<span>{{ isset($parts[1]) ? ' '.$parts[1] : '' }}</span></div>
   <div class="loader-bar"><div class="loader-bar-fill"></div></div>
   <div class="loader-text" id="loader-text">Initializing...</div>
