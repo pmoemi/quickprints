@@ -146,6 +146,30 @@ class StaffController extends BmsController
         return redirect()->route('bms.staff.index')->with('success', 'Staff updated.');
     }
 
+    public function resetPassword(Request $request, int $id): RedirectResponse
+    {
+        $this->authorizeBms('staff', 'update');
+
+        // Only Admin can reset passwords
+        if (auth()->user()?->role !== 'Admin') {
+            abort(403, 'Only Admin users can reset staff passwords.');
+        }
+
+        $request->validate([
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $staff = Staff::query()->findOrFail($id);
+        if (! $staff->user_id) {
+            return back()->with('error', 'This staff member has no linked login account.');
+        }
+
+        User::query()->where('id', $staff->user_id)
+            ->update(['password' => Hash::make($request->input('new_password'))]);
+
+        return back()->with('success', "Password for {$staff->name} has been reset.");
+    }
+
     public function destroy(int $id): RedirectResponse
     {
         $this->authorizeBms('staff', 'delete');

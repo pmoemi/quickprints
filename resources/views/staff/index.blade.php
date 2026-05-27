@@ -30,50 +30,136 @@
   </div>
 @endif
 
-<div class="card">
-  <div class="tbl-wrap">
-    <table>
-      <thead>
-        <tr><th>Name</th><th>Role</th><th>Email</th><th>Phone</th><th>Branch</th><th>Salary</th><th>Status</th><th>Actions</th></tr>
-      </thead>
-      <tbody>
-        @forelse($staff as $member)
-          <tr>
-            <td>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div class="avatar" style="background:{{ $member->color ? $member->color.'20' : 'var(--accent-dim)' }};color:{{ $member->color ?? 'var(--accent)' }};">
-                  {{ strtoupper(substr($member->name, 0, 2)) }}
-                </div>
-                <span style="font-weight:600;">{{ $member->name }}</span>
+<div class="card" style="padding:0;overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="padding:10px 14px;">Name</th>
+        <th>Role</th>
+        <th>Email</th>
+        <th>Branch</th>
+        <th>Salary</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @forelse($staff as $member)
+        {{-- Main row --}}
+        <tr id="row-{{ $member->id }}">
+          <td style="padding:10px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="avatar" style="background:{{ $member->color ? $member->color.'20' : 'var(--accent-dim)' }};color:{{ $member->color ?? 'var(--accent)' }};">
+                {{ strtoupper(substr($member->name, 0, 2)) }}
               </div>
-            </td>
-            <td><span class="badge badge-blue">{{ $member->role }}</span></td>
-            <td style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
-            <td class="mono" style="font-size:12px;">{{ $member->phone ?? '—' }}</td>
-            <td><span style="font-size:12px;color:var(--text2);">{{ $member->branch === 'all' ? 'All' : ($member->branch ?? '—') }}</span></td>
-            <td class="mono">{{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}</td>
-            <td>
-              @if($member->active)
-                <span class="badge badge-green">Active</span>
-              @else
-                <span class="badge badge-red">Inactive</span>
+              <div>
+                <div style="font-weight:600;font-size:13px;">{{ $member->name }}</div>
+                <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">{{ $member->phone ?? '' }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-blue">{{ $member->role }}</span></td>
+          <td style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
+          <td><span style="font-size:12px;color:var(--text2);">{{ $member->branch === 'all' ? 'All' : ($member->branch ?? '—') }}</span></td>
+          <td class="mono" style="font-size:12px;">{{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}</td>
+          <td>
+            @if($member->active)
+              <span class="badge badge-green">Active</span>
+            @else
+              <span class="badge badge-red">Inactive</span>
+            @endif
+          </td>
+          <td>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <a href="{{ route('bms.staff.edit', $member->id) }}" class="btn btn-secondary btn-sm">Edit</a>
+              @if(auth()->user()?->role === 'Admin' && $member->user_id)
+                <button type="button" class="btn btn-secondary btn-sm"
+                        onclick="togglePwReset({{ $member->id }})"
+                        id="btn-pw-{{ $member->id }}"
+                        title="Reset password for {{ $member->name }}">🔑</button>
               @endif
-            </td>
-            <td>
-              <div style="display:flex;gap:4px;">
-                <a href="{{ route('bms.staff.edit', $member->id) }}" class="btn btn-secondary btn-sm">Edit</a>
-                <form method="POST" action="{{ route('bms.staff.destroy', $member->id) }}" onsubmit="return confirm('Delete staff member?')">
-                  @csrf @method('DELETE')
-                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-              </div>
+              <form method="POST" action="{{ route('bms.staff.destroy', $member->id) }}"
+                    onsubmit="return confirm('Delete {{ addslashes($member->name) }}?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+
+        {{-- Inline password reset row (hidden by default) --}}
+        @if(auth()->user()?->role === 'Admin' && $member->user_id)
+          <tr id="pw-row-{{ $member->id }}" style="display:none;background:var(--bg3);">
+            <td colspan="7" style="padding:12px 16px;">
+              <form method="POST" action="{{ route('bms.staff.reset-password', $member->id) }}"
+                    style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+                @csrf
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                  <div class="avatar" style="width:28px;height:28px;font-size:11px;background:{{ $member->color ? $member->color.'20' : 'var(--accent-dim)' }};color:{{ $member->color ?? 'var(--accent)' }};">
+                    {{ strtoupper(substr($member->name, 0, 2)) }}
+                  </div>
+                  <span style="font-size:13px;font-weight:600;">{{ $member->name }}</span>
+                  <span style="font-size:11px;color:var(--text3);">· Reset Password</span>
+                </div>
+                <div style="flex:1;min-width:160px;max-width:220px;">
+                  <label style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;">New Password</label>
+                  <div style="position:relative;">
+                    <input type="password" name="new_password" id="pw-inp-{{ $member->id }}"
+                           class="fld" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 32px 7px 10px;color:var(--text);font-size:13px;"
+                           minlength="8" placeholder="Min 8 chars" autocomplete="new-password">
+                    <button type="button" tabindex="-1"
+                            onclick="togglePwVis('pw-inp-{{ $member->id }}',this)"
+                            style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;">👁</button>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:160px;max-width:220px;">
+                  <label style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;">Confirm Password</label>
+                  <input type="password" name="new_password_confirmation"
+                         style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);font-size:13px;"
+                         minlength="8" placeholder="Repeat password" autocomplete="new-password">
+                </div>
+                <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:1px;">
+                  <button type="submit" class="btn btn-primary btn-sm">Save Password</button>
+                  <button type="button" class="btn btn-secondary btn-sm"
+                          onclick="togglePwReset({{ $member->id }})">Cancel</button>
+                </div>
+              </form>
             </td>
           </tr>
-        @empty
-          <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">👤</div><p>No staff members</p></div></td></tr>
-        @endforelse
-      </tbody>
-    </table>
-  </div>
+        @endif
+      @empty
+        <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👤</div><p>No staff members</p></div></td></tr>
+      @endforelse
+    </tbody>
+  </table>
 </div>
+
+<style>
+@media(max-width:768px){
+  #staff-table th:nth-child(4),
+  #staff-table td:nth-child(4),
+  #staff-table th:nth-child(5),
+  #staff-table td:nth-child(5){ display:none; }
+}
+</style>
+
+<script>
+function togglePwReset(id) {
+  const row = document.getElementById('pw-row-' + id);
+  const btn = document.getElementById('btn-pw-' + id);
+  const open = row.style.display === 'none' || row.style.display === '';
+  row.style.display = open ? 'table-row' : 'none';
+  btn.style.background = open ? 'var(--accent-dim)' : '';
+  btn.style.borderColor = open ? 'var(--accent)' : '';
+  if (open) {
+    const inp = document.getElementById('pw-inp-' + id);
+    if (inp) inp.focus();
+  }
+}
+function togglePwVis(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+</script>
 @endsection
