@@ -91,6 +91,7 @@ Route::name('bms.')->group(function () {
         Route::resource('inventory', InventoryController::class)->except(['show'])->middleware('bms.page:inventory');
         Route::resource('staff', StaffController::class)->except(['show'])->middleware('bms.page:staff');
         Route::post('staff/{id}/reset-password', [StaffController::class, 'resetPassword'])->name('staff.reset-password')->middleware('bms.page:staff');
+        Route::post('staff/user/{userId}/reset-password', [StaffController::class, 'resetPasswordByUser'])->name('staff.reset-password-user')->middleware('bms.page:staff');
 
         Route::get('saleslog', [SalesLogController::class, 'index'])->name('saleslog.index')->middleware('bms.page:saleslog');
         Route::get('saleslog/create', [SalesLogController::class, 'create'])->name('saleslog.create')->middleware('bms.page:saleslog');

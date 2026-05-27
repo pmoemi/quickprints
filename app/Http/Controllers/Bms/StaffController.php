@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bms;
 
 use App\Models\Staff;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use App\Support\BmsPermissions;
 use App\Support\BmsSettingsDefaults;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,30 @@ class StaffController extends BmsController
         }
 
         $staff = $query->get();
+
+        // Also include Admin users who have no linked staff record
+        $linkedUserIds = $staff->pluck('user_id')->filter()->values();
+        $adminUsers = User::query()
+            ->where('role', 'Admin')
+            ->whereNotIn('id', $linkedUserIds)
+            ->get()
+            ->map(fn (User $u) => (object) [
+                'id'      => null,
+                'name'    => $u->name,
+                'email'   => $u->email,
+                'role'    => 'Admin',
+                'branch'  => $u->branch ?? 'all',
+                'salary'  => null,
+                'active'  => true,
+                'phone'   => null,
+                'color'   => '#b91c1c',
+                'user_id' => $u->id,
+                '_admin_only' => true, // flag — no staff record exists
+            ]);
+
+        // Merge admins at the top
+        $staff = $adminUsers->concat($staff);
+
         $branches = array_merge(['all'], $this->branchNames());
 
         return view('staff.index', compact('staff', 'branch', 'branches', 'q'));
@@ -197,6 +222,24 @@ class StaffController extends BmsController
             ->update(['password' => Hash::make($request->input('new_password'))]);
 
         return back()->with('success', "Password for {$staff->name} has been reset.");
+    }
+
+    public function resetPasswordByUser(Request $request, int $userId): RedirectResponse
+    {
+        $this->authorizeBms('staff', 'update');
+
+        if (! BmsPermissions::canResetStaffPasswords(auth()->user()?->role)) {
+            abort(403, 'You do not have permission to reset staff passwords.');
+        }
+
+        $request->validate([
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::query()->findOrFail($userId);
+        $user->update(['password' => Hash::make($request->input('new_password'))]);
+
+        return back()->with('success', "Password for {$user->name} has been reset.");
     }
 
     public function destroy(int $id): RedirectResponse
