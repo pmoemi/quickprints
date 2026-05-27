@@ -53,8 +53,8 @@ Business Management System for print, signage, and fabrication shops. QuickPrint
 | Auth (API) | Laravel Sanctum |
 | Database | MySQL / MariaDB (recommended) or SQLite |
 | PDF | barryvdh/laravel-dompdf |
-| Frontend | Blade templates, Tailwind CSS 4, Vite |
-| Optional UI | Standalone offline HTML frontend at `/bms` |
+| Frontend | Blade templates with inline CSS (no build step) |
+| Charts | Chart.js (CDN on dashboard) |
 
 ---
 
@@ -62,9 +62,10 @@ Business Management System for print, signage, and fabrication shops. QuickPrint
 
 - PHP **8.3+** with extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `json`, `mbstring`, `openssl`, `pdo`, `tokenizer`, `xml`
 - Composer 2.x
-- Node.js 18+ and npm (for asset builds)
-- MySQL/MariaDB or SQLite
+- MySQL/MariaDB (recommended) or SQLite
 - Apache with `mod_rewrite` (XAMPP works out of the box)
+
+> **Node.js / npm are not required.** The BMS UI is served entirely from Blade views. Vite and Tailwind in this repo are unused Laravel boilerplate unless you extend the frontend pipeline yourself.
 
 ---
 
@@ -77,11 +78,10 @@ git clone https://github.com/pmoemi/quickprints.git
 cd quickprints
 ```
 
-### 2. Install dependencies
+### 2. Install PHP dependencies
 
 ```bash
 composer install
-npm install
 ```
 
 ### 3. Environment setup
@@ -126,21 +126,9 @@ The seeder loads demo company settings, sample jobs, clients, inventory, and sta
 php artisan storage:link
 ```
 
-### 6. Build frontend assets
+### 6. Run the application
 
-```bash
-npm run build
-```
-
-### 7. Run the application
-
-**Development (all services):**
-
-```bash
-composer dev
-```
-
-**Or with XAMPP Apache**, point the document root to the project folder (the included `.htaccess` rewrites requests to `public/`). Visit:
+**With XAMPP Apache**, point the document root to the project folder (the included `.htaccess` rewrites requests to `public/`). Visit:
 
 ```
 http://localhost/quickprints/login
@@ -153,6 +141,12 @@ php artisan serve
 ```
 
 Then open `http://127.0.0.1:8000/login`.
+
+**Optional — Laravel dev stack** (includes queue worker, log tail, and Vite; only needed if you add Vite-based assets):
+
+```bash
+composer dev
+```
 
 ---
 
@@ -192,15 +186,20 @@ Authorization: Bearer {your-token}
 
 ---
 
-## Optional Offline Frontend
+## Maintenance & Demo Data
 
-A standalone HTML frontend can be served from `/bms`. Install or refresh it from the bundled source file:
+Reset or reload operational data from the CLI or the **Maintenance** page (Admin / GM):
 
 ```bash
-php artisan bms:install-frontend
-```
+# Show table counts
+php artisan bms:reset-data counts
 
-This copies `QuickPrints_BMS_Offline.html` to `public/bms/index.html`.
+# Clear all BMS records (keeps users & settings)
+php artisan bms:reset-data clear --force
+
+# Reload demo jobs, clients, inventory, etc.
+php artisan bms:reset-data demo --force
+```
 
 ---
 
@@ -237,6 +236,9 @@ php artisan view:clear
 
 # Fresh database with demo data
 php artisan migrate:fresh --seed
+
+# Reload demo data only (keeps schema & users)
+php artisan bms:reset-data demo --force
 
 # Code style (Pint)
 ./vendor/bin/pint
