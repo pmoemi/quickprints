@@ -7,6 +7,7 @@ use App\Models\InventoryItem;
 use App\Models\PrintJob;
 use App\Models\SalesLog;
 use App\Support\BmsPermissions;
+use Carbon\Carbon;
 use Illuminate\View\View;
 
 class DashboardController extends BmsController
