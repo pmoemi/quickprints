@@ -428,7 +428,7 @@
           >
         @else
           <h1>{{ $settings['company_name'] ?? 'QuickPrints' }}</h1>
-        @endif
+    @endif
       </div>
       <div class="main-hd-left">
         <h2>Client Portal</h2>
@@ -456,12 +456,12 @@
         <div class="stat-mini-lbl">Due</div>
         <div class="stat-mini-val due">{{ $currency }} {{ number_format($unpaidTotal / 1000, 0) }}k</div>
       </div>
-    </div>
+  </div>
 
     <div class="main-tabs" role="tablist">
       <button type="button" class="main-tab active" data-panel="jobs" role="tab">Your Jobs</button>
       <button type="button" class="main-tab" data-panel="invoices" role="tab">Invoices</button>
-    </div>
+  </div>
 
     <section class="main-panel active" id="panel-jobs" role="tabpanel">
     @if($jobs->count())

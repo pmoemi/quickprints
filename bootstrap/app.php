@@ -15,7 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         $middleware->alias([
-            'bms.page' => \App\Http\Middleware\EnsureBmsAccess::class,
+            'bms.page'   => \App\Http\Middleware\EnsureBmsAccess::class,
+            'bms.pw'     => \App\Http\Middleware\RequirePasswordChange::class,
         ]);
         $middleware->redirectGuestsTo(fn () => route('bms.login'));
     })

@@ -91,13 +91,14 @@ class StaffController extends BmsController
             $user = $existingUser;
             $showPassword = $request->filled('password') ? null : null; // existing account — no new password to show
         } else {
-            // Create a brand new user account
+            // Always require new staff to change their password on first login
             $user = User::query()->create([
-                'name'     => $data['name'],
-                'email'    => strtolower($data['email']),
-                'password' => Hash::make($password),
-                'role'     => $data['role'],
-                'branch'   => $data['branch'],
+                'name'                  => $data['name'],
+                'email'                 => strtolower($data['email']),
+                'password'              => Hash::make($password),
+                'role'                  => $data['role'],
+                'branch'                => $data['branch'],
+                'force_password_change' => true,
             ]);
             $showPassword = $request->filled('password') ? null : $password;
         }

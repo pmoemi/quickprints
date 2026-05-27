@@ -3,6 +3,7 @@
 use App\Http\Controllers\Bms\AssetController;
 use App\Http\Controllers\Bms\AttendanceController;
 use App\Http\Controllers\Bms\AuditLogController;
+use App\Http\Controllers\Bms\Auth\ChangePasswordController;
 use App\Http\Controllers\Bms\Auth\ForgotPasswordController;
 use App\Http\Controllers\Bms\Auth\LoginController;
 use App\Http\Controllers\Bms\Auth\ResetPasswordController;
@@ -59,6 +60,13 @@ Route::name('bms.')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+        // First-login password change (must be accessible before bms.pw blocks everything)
+        Route::get('change-password',  [ChangePasswordController::class, 'show'])->name('password.change');
+        Route::post('change-password', [ChangePasswordController::class, 'update'])->name('password.change.update');
+
+        Route::middleware('bms.pw')->group(function () {
+
         Route::post('branch', BranchFilterController::class)->name('branch');
 
         Route::get('profile', [ProfileController::class, 'show'])->name('profile');
@@ -196,5 +204,7 @@ Route::name('bms.')->group(function () {
             Route::get('numbering', [SettingsController::class, 'numbering'])->name('numbering');
             Route::put('numbering', [SettingsController::class, 'updateNumbering'])->name('numbering.update');
         });
+
+        }); // end bms.pw middleware group
     });
 });
