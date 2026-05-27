@@ -321,6 +321,18 @@ tr:last-child td{border-bottom:none;}
 .pwa-install-dismiss{width:28px;height:28px;border-radius:50%;background:var(--bg3);color:var(--text2);font-size:14px;}
 .pwa-install-dismiss:hover{color:var(--text);background:var(--bg4);}
 
+/* PWA reinstall prompt (icon update) */
+#pwa-reinstall-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;}
+#pwa-reinstall-overlay.show{display:flex;}
+.pwa-reinstall-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px 20px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.45);}
+.pwa-reinstall-card h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.pwa-reinstall-card p{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:14px;}
+.pwa-reinstall-steps{font-size:12px;color:var(--text2);line-height:1.6;margin:0 0 16px 1.1rem;}
+.pwa-reinstall-steps li{margin-bottom:6px;}
+.pwa-reinstall-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.pwa-reinstall-primary{flex:1;min-width:140px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;background:var(--accent);color:#fff;border:none;cursor:pointer;}
+.pwa-reinstall-secondary{padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--text2);border:1px solid var(--border);cursor:pointer;}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   :root{--sidebar-w:0px;}
@@ -593,6 +605,22 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div id="pwa-reinstall-overlay" role="dialog" aria-modal="true" aria-labelledby="pwa-reinstall-title" aria-hidden="true">
+  <div class="pwa-reinstall-card">
+    <h3 id="pwa-reinstall-title">App icon updated</h3>
+    <p>Your home screen still shows the old icon. Mobile devices require a quick reinstall to refresh it.</p>
+    <ol class="pwa-reinstall-steps" id="pwa-reinstall-steps">
+      <li>Remove this app from your home screen</li>
+      <li>Open QuickPrints in your browser (Safari or Chrome)</li>
+      <li>Add to Home Screen / Install app again</li>
+    </ol>
+    <div class="pwa-reinstall-actions">
+      <button type="button" class="pwa-reinstall-primary" id="pwa-reinstall-done">I've reinstalled</button>
+      <button type="button" class="pwa-reinstall-secondary" id="pwa-reinstall-later">Remind me later</button>
+    </div>
+  </div>
+</div>
+
 {{-- Page navigation progress bar --}}
 <div id="page-loader"><div id="page-loader-bar"></div></div>
 
@@ -770,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register(@json(asset('sw.js')) + '?v=3').then(function(reg) {
+      navigator.serviceWorker.register(@json(asset('sw.js')) + '?v=4').then(function(reg) {
         reg.update();
         document.addEventListener('visibilitychange', function() {
           if (document.visibilityState === 'visible') reg.update();
@@ -816,6 +844,76 @@ document.addEventListener('DOMContentLoaded', () => {
     const ua = window.navigator.userAgent.toLowerCase();
     const isIosSafari = /iphone|ipad|ipod/.test(ua) && /safari/.test(ua) && !/crios|fxios|edgios/.test(ua);
     if (isIosSafari) showBanner('ios');
+  });
+})();
+
+(function() {
+  var overlay = document.getElementById('pwa-reinstall-overlay');
+  var doneBtn = document.getElementById('pwa-reinstall-done');
+  var laterBtn = document.getElementById('pwa-reinstall-later');
+  var stepsEl = document.getElementById('pwa-reinstall-steps');
+  if (!overlay || !doneBtn || !laterBtn) return;
+
+  var ICON_VERSION_KEY = 'quickprints:pwa-icon-version';
+  var ICON_LATER_KEY = 'quickprints:pwa-icon-reinstall-later';
+  var currentVersion = document.querySelector('meta[name=pwa-icon-version]')?.content || '';
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  function isIos() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  }
+
+  function showReinstallPrompt() {
+    if (stepsEl && isIos()) {
+      stepsEl.innerHTML =
+        '<li>Long-press the app icon → Remove App</li>' +
+        '<li>Open Safari and go to QuickPrints</li>' +
+        '<li>Tap Share → Add to Home Screen</li>';
+    }
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideReinstallPrompt() {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  if (!currentVersion) return;
+
+  var storedVersion = localStorage.getItem(ICON_VERSION_KEY);
+  var laterUntil = Number(localStorage.getItem(ICON_LATER_KEY) || 0);
+
+  if (!storedVersion) {
+    if (isStandalone()) {
+      showReinstallPrompt();
+      return;
+    }
+    localStorage.setItem(ICON_VERSION_KEY, currentVersion);
+    return;
+  }
+
+  if (isStandalone() && storedVersion !== currentVersion && Date.now() > laterUntil) {
+    showReinstallPrompt();
+  }
+
+  doneBtn.addEventListener('click', function() {
+    localStorage.setItem(ICON_VERSION_KEY, currentVersion);
+    localStorage.removeItem(ICON_LATER_KEY);
+    hideReinstallPrompt();
+  });
+
+  laterBtn.addEventListener('click', function() {
+    localStorage.setItem(ICON_LATER_KEY, String(Date.now() + 24 * 60 * 60 * 1000));
+    hideReinstallPrompt();
+  });
+
+  window.addEventListener('appinstalled', function() {
+    localStorage.setItem(ICON_VERSION_KEY, currentVersion);
+    localStorage.removeItem(ICON_LATER_KEY);
   });
 })();
 </script>

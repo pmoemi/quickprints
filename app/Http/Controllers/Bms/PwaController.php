@@ -14,7 +14,6 @@ class PwaController extends Controller
     {
         $all     = $settings->all();
         $brand   = BrandColors::fromSettings($all);
-        $iconUrl = BrandAssets::pwaHomeIconUrl($all);
         $company = trim((string) ($all['company_name'] ?? 'QuickPrints')) ?: 'QuickPrints';
 
         return response()->json([
@@ -27,14 +26,8 @@ class PwaController extends Controller
             'background_color' => '#111318',
             'theme_color'      => $brand['primary'],
             'orientation'      => 'portrait',
-            'icons'            => [
-                [
-                    'src'     => $iconUrl,
-                    'sizes'   => 'any',
-                    'type'    => BrandAssets::faviconMime($iconUrl),
-                    'purpose' => 'any maskable',
-                ],
-            ],
+            'icon_version'     => BrandAssets::pwaIconVersion($all),
+            'icons'            => BrandAssets::pwaManifestIcons($all),
         ], 200, [
             'Content-Type'              => 'application/manifest+json; charset=utf-8',
             'Cache-Control'             => 'no-cache, no-store, must-revalidate',

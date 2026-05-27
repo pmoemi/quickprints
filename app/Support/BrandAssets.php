@@ -4,6 +4,9 @@ namespace App\Support;
 
 class BrandAssets
 {
+    /** Bump manually when you replace launcher PNGs to force reinstall prompts. */
+    private const PWA_ICON_EPOCH = '20260527-launcher-v1';
+
     /** Resolve branding file URLs against the current app base (works in subfolders). */
     public static function publicUrl(?string $url): ?string
     {
@@ -36,10 +39,82 @@ class BrandAssets
         return self::publicUrl($settings['favicon_url'] ?? null);
     }
 
-    /** Home-screen / manifest PWA icon — uploaded favicon, or built-in fallback. */
+    /** Home-screen / manifest PWA icon — bundled launcher PNGs, then favicon fallback. */
     public static function pwaHomeIconUrl(array $settings): string
     {
+        if (self::hasLauncherIcons()) {
+            return asset('pwa/icons/icon-192.png');
+        }
+
         return self::faviconUrl($settings) ?? asset('pwa-icon.svg');
+    }
+
+    /** @return list<array{src: string, sizes: string, type: string, purpose: string}> */
+    public static function pwaManifestIcons(array $settings): array
+    {
+        if (self::hasLauncherIcons()) {
+            $icons = [];
+
+            foreach ([
+                ['file' => 'icon-192.png',  'sizes' => '192x192'],
+                ['file' => 'icon-512.png',  'sizes' => '512x512'],
+                ['file' => 'icon-1024.png', 'sizes' => '1024x1024'],
+            ] as $def) {
+                if (file_exists(public_path('pwa/icons/'.$def['file']))) {
+                    $icons[] = [
+                        'src'     => asset('pwa/icons/'.$def['file']),
+                        'sizes'   => $def['sizes'],
+                        'type'    => 'image/png',
+                        'purpose' => 'any',
+                    ];
+                }
+            }
+
+            if (file_exists(public_path('pwa/icons/icon-512.png'))) {
+                $icons[] = [
+                    'src'     => asset('pwa/icons/icon-512.png'),
+                    'sizes'   => '512x512',
+                    'type'    => 'image/png',
+                    'purpose' => 'maskable',
+                ];
+            }
+
+            return $icons;
+        }
+
+        $fallback = self::faviconUrl($settings) ?? asset('pwa-icon.svg');
+
+        return [[
+            'src'     => $fallback,
+            'sizes'   => 'any',
+            'type'    => self::faviconMime($fallback),
+            'purpose' => 'any maskable',
+        ]];
+    }
+
+    public static function hasLauncherIcons(): bool
+    {
+        return file_exists(public_path('pwa/icons/icon-192.png'))
+            && file_exists(public_path('pwa/icons/icon-512.png'));
+    }
+
+    /** Version string — changes when launcher files or favicon branding updates. */
+    public static function pwaIconVersion(array $settings): string
+    {
+        $parts = [self::PWA_ICON_EPOCH];
+
+        foreach (['icon-192.png', 'icon-512.png', 'icon-1024.png'] as $file) {
+            $path = public_path('pwa/icons/'.$file);
+            if (file_exists($path)) {
+                $parts[] = $file.':'.filemtime($path).':'.filesize($path);
+            }
+        }
+
+        if (! self::hasLauncherIcons()) {
+            $parts[] = 'favicon:'.($settings['favicon_url'] ?? '');
+        }
+
+        return substr(md5(implode('|', $parts)), 0, 12);
     }
 
     /** Logo on in-app splash and login loader screens. */
