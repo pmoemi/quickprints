@@ -291,6 +291,16 @@ tr:last-child td{border-bottom:none;}
 .bar-fill{height:100%;background:var(--accent);border-radius:3px;display:flex;align-items:center;padding:0 8px;font-size:11px;color:#fff;font-weight:600;}
 .bar-val{font-size:12px;color:var(--text2);width:70px;font-family:var(--mono);}
 
+/* SIDEBAR CLOSE BUTTON (mobile only) */
+#sidebar-close{display:none;}
+
+/* SIDEBAR BACKDROP */
+#sidebar-backdrop{
+  display:none;position:fixed;inset:0;z-index:99;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(2px);
+}
+#sidebar-backdrop.open{display:block;}
+
 /* MOBILE NAV */
 .mobile-nav{display:none;}
 
@@ -299,6 +309,18 @@ tr:last-child td{border-bottom:none;}
   :root{--sidebar-w:0px;}
   #sidebar{transform:translateX(-220px);transition:transform .3s;}
   #sidebar.open{transform:translateX(0);width:220px;}
+  #sidebar-close{
+    display:flex;align-items:center;justify-content:center;
+    position:absolute;top:10px;right:10px;
+    width:28px;height:28px;border-radius:50%;
+    background:rgba(255,255,255,.1);border:none;
+    color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;
+    line-height:1;z-index:2;
+  }
+  #sidebar-close:hover{background:rgba(255,255,255,.2);color:#fff;}
+  body.theme-light #sidebar-close{background:rgba(0,0,0,.07);color:#555;}
+  body.theme-light #sidebar-close:hover{background:rgba(0,0,0,.13);color:#222;}
+  .sidebar-logo{position:relative;padding-right:44px;}
   #main{padding:14px 12px 96px;}
   #topbar{padding:0 8px;gap:6px;left:0;}
   .grid-4{grid-template-columns:1fr 1fr;}
@@ -375,8 +397,10 @@ tr:last-child td{border-bottom:none;}
   $bmsHasLogo = BrandAssets::hasLogo($bmsSettings);
 @endphp
 
+<div id="sidebar-backdrop"></div>
 <div id="sidebar">
   <div class="sidebar-logo">
+    <button id="sidebar-close" onclick="closeSidebar()" aria-label="Close menu">&#10005;</button>
     @if($bmsHasLogo)
       <img
         id="bms-brand-logo"
@@ -592,16 +616,36 @@ function toggleTheme() {
 const fl = document.getElementById('flash-msg');
 if (fl) setTimeout(() => { fl.style.opacity = '0'; fl.style.transition = 'opacity .5s'; setTimeout(() => fl.remove(), 500); }, 4000);
 // Mobile sidebar toggle
+window.closeSidebar = function () {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('open');
+};
 document.addEventListener('DOMContentLoaded', () => {
-  const topbar = document.getElementById('topbar');
+  const topbar   = document.getElementById('topbar');
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+
   if (window.innerWidth <= 768 && topbar) {
     const btn = document.createElement('button');
     btn.innerHTML = '☰';
     btn.className = 'btn-topbar';
     btn.style.marginRight = '4px';
-    btn.onclick = () => document.getElementById('sidebar').classList.toggle('open');
+    btn.onclick = () => {
+      sidebar.classList.toggle('open');
+      backdrop.classList.toggle('open');
+    };
     topbar.insertBefore(btn, topbar.firstChild);
   }
+
+  // Tap backdrop → close
+  backdrop.addEventListener('click', closeSidebar);
+
+  // Tap any nav link → close (navigation away)
+  sidebar.querySelectorAll('.nav-item').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
 });
 </script>
 @stack('scripts')
