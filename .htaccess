@@ -1,11 +1,18 @@
 <IfModule mod_rewrite.c>
-    Options +FollowSymLinks
+    Options +FollowSymLinks -MultiViews
     RewriteEngine On
 
-    # XAMPP subdirectory only — set RewriteBase if the app is not at the domain root.
-    # Example for http://localhost/quickprints/ :
+    # XAMPP subdirectory: uncomment and set to your folder name, e.g. /quickprints/
     # RewriteBase /quickprints/
 
+    # Allow direct access to files already under public/
     RewriteRule ^public/ - [L]
+
+    # Serve real files/folders from public/ when they exist
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
     RewriteRule ^(.*)$ public/$1 [L]
+
+    # All other requests → Laravel front controller (avoids "No input file specified" on CGI/FastCGI)
+    RewriteRule ^ public/index.php [L]
 </IfModule>
