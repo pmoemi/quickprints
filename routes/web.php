@@ -35,6 +35,7 @@ use App\Http\Controllers\Bms\SalesLogController;
 use App\Http\Controllers\Bms\SalesTargetController;
 use App\Http\Controllers\Bms\ServicesController;
 use App\Http\Controllers\Bms\SettingsController;
+use App\Http\Controllers\Bms\ProfileController;
 use App\Http\Controllers\Bms\StaffController;
 use App\Http\Controllers\Bms\SupplierController;
 use App\Http\Controllers\Bms\ReportPdfController;
@@ -59,6 +60,10 @@ Route::name('bms.')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::post('branch', BranchFilterController::class)->name('branch');
+
+        Route::get('profile', [ProfileController::class, 'show'])->name('profile');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard')->middleware('bms.page:dashboard');
         Route::get('kanban', [KanbanController::class, 'index'])->name('kanban')->middleware('bms.page:kanban');

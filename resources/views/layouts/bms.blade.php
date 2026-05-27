@@ -375,8 +375,13 @@ tr:last-child td{border-bottom:none;}
     <p>{{ $bmsBranch === 'all' ? 'All Branches' : $bmsBranch }}</p>
   </div>
   <div class="sidebar-user">
-    <div class="u-name">{{ $bmsUser?->name ?? '—' }}</div>
-    <div class="u-role">{{ $bmsUser?->role ?? '—' }}</div>
+    <a href="{{ route('bms.profile') }}" style="text-decoration:none;color:inherit;display:block;">
+      <div class="u-name">{{ $bmsUser?->name ?? '—' }}</div>
+      <div class="u-role" style="display:flex;align-items:center;gap:6px;">
+        <span>{{ $bmsUser?->role ?? '—' }}</span>
+        <span style="font-size:10px;opacity:.55;letter-spacing:.03em;">· Edit profile</span>
+      </div>
+    </a>
   </div>
   <div id="nav-menu">
     @foreach($bmsNav as $section)
