@@ -69,6 +69,9 @@
               <span class="badge" style="background:rgba(185,28,28,.15);color:#dc2626;border:1px solid rgba(185,28,28,.3);">Admin</span>
             @else
               <span class="badge badge-blue">{{ $member->role }}</span>
+              @if(!empty($member->is_designer))
+                <span class="badge" style="margin-left:4px;background:rgba(234,179,8,.15);color:#ca8a04;border:1px solid rgba(234,179,8,.3);">Designer</span>
+              @endif
             @endif
           </td>
           <td class="col-email" style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>

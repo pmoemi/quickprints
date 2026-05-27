@@ -294,7 +294,7 @@ abstract class BmsController extends Controller
     {
         $query = Staff::query()
             ->where('active', true)
-            ->where('role', 'Designer')
+            ->where('is_designer', true)
             ->orderBy('name');
 
         $scopeBranch = $branch ?? $this->branchFilter();

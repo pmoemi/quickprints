@@ -73,6 +73,18 @@
       </div>
     </div>
 
+    <div class="form-row">
+      <div class="fld">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;">
+          <input type="checkbox" name="is_designer" value="1" {{ old('is_designer', $member->is_designer ?? false) ? 'checked' : '' }} style="width:16px;height:16px;">
+          Is Designer
+        </label>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">
+          Designers appear in job assignment lists and receive jobs on the designer board.
+        </div>
+      </div>
+    </div>
+
     @if(!$editing)
     <div class="form-row cols-2">
       <div class="fld">

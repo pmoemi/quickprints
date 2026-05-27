@@ -69,7 +69,7 @@ class StaffController extends BmsController
         $this->authorizeBms('staff', 'create');
 
         return view('staff.form', [
-            'member' => new Staff(['active' => true]),
+            'member' => new Staff(['active' => true, 'is_designer' => false]),
             'branches' => $this->branchNames(),
             'roles' => $this->roles(),
         ]);
@@ -87,10 +87,12 @@ class StaffController extends BmsController
             'branch'   => 'required|string|max:80',
             'salary'   => 'nullable|numeric|min:0',
             'password' => 'nullable|string|min:8',
+            'is_designer' => 'nullable|boolean',
         ]);
 
         $data['id'] = $this->nextNumericId(Staff::class);
         $data['active'] = true;
+        $data['is_designer'] = $request->boolean('is_designer');
         $data['color'] = '#'.substr(md5($data['email']), 0, 6);
 
         $password = $data['password'] ?? ('QP@'.bin2hex(random_bytes(4)).'1!');
@@ -173,9 +175,11 @@ class StaffController extends BmsController
             'branch' => 'required|string|max:80',
             'salary' => 'nullable|numeric|min:0',
             'active' => 'nullable|boolean',
+            'is_designer' => 'nullable|boolean',
         ]);
 
         $data['active'] = $request->boolean('active');
+        $data['is_designer'] = $request->boolean('is_designer');
         $staff->update($data);
 
         if ($staff->user_id) {

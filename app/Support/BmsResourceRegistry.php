@@ -83,6 +83,7 @@ class BmsResourceRegistry
                 'color' => 'nullable|string',
                 'salary' => 'nullable|numeric',
                 'active' => 'nullable|boolean',
+                'is_designer' => 'nullable|boolean',
             ],
             'saleslog' => [
                 'id' => ($updating ? 'sometimes' : 'required').'|integer',
@@ -191,7 +192,7 @@ class BmsResourceRegistry
     {
         return match ($resource) {
             'jobs' => ['paid' => 'bool', 'history' => 'array', 'follow_ups' => 'array'],
-            'staff' => ['active' => 'bool'],
+            'staff' => ['active' => 'bool', 'is_designer' => 'bool'],
             'quotes' => ['items' => 'array'],
             default => [],
         };

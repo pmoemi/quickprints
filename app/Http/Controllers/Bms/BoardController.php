@@ -23,13 +23,12 @@ class BoardController extends BmsController
             ->whereNotNull('designer_id');
 
         $user = Auth::user();
-        if ($user && $user->role === 'Designer') {
-            $staffId = Staff::query()->where('user_id', $user->id)->value('id');
-            if ($staffId) {
-                $query->where('designer_id', $staffId);
-            } else {
-                $query->whereRaw('0 = 1');
-            }
+        $currentStaff = $user
+            ? Staff::query()->where('user_id', $user->id)->first()
+            : null;
+
+        if ($currentStaff?->is_designer) {
+            $query->where('designer_id', $currentStaff->id);
         }
 
         $jobs = $query->orderBy('deadline')->get();
@@ -40,7 +39,7 @@ class BoardController extends BmsController
             'jobs' => $jobs,
             'clients' => $this->scopedClientsKeyBy(),
             'designers' => $designers,
-            'showDesignerColumn' => $user && $user->role !== 'Designer',
+            'showDesignerColumn' => ! ($currentStaff?->is_designer ?? false),
         ]);
     }
 

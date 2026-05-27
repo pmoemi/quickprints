@@ -19,8 +19,14 @@ class Staff extends Model
     {
         return [
             'active' => 'boolean',
+            'is_designer' => 'boolean',
             'salary' => 'decimal:2',
         ];
+    }
+
+    public function scopeDesigners($query)
+    {
+        return $query->where('is_designer', true);
     }
 
     public function user(): BelongsTo

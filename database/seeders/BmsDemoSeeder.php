@@ -115,6 +115,7 @@ class BmsDemoSeeder extends Seeder
                     'color' => $color,
                     'salary' => $salary,
                     'active' => true,
+                    'is_designer' => $role === 'Designer',
                 ]
             );
         }
