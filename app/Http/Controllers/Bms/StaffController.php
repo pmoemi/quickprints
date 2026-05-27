@@ -55,18 +55,12 @@ class StaffController extends BmsController
 
         $data = $request->validate([
             'name'     => 'required|string|max:120',
-            'email'    => 'required|email',
+            'email'    => 'required|email|unique:staff,email|unique:users,email',
             'role'     => 'required|string|max:80',
             'branch'   => 'required|string|max:80',
             'salary'   => 'nullable|numeric|min:0',
             'password' => 'nullable|string|min:8',
         ]);
-
-        // Block creating staff with an email that belongs to an Admin (unless you are Admin)
-        $emailOwner = User::query()->where('email', strtolower($data['email']))->first();
-        if ($emailOwner && $emailOwner->role === 'Admin' && auth()->user()?->role !== 'Admin') {
-            return back()->withErrors(['email' => 'This email belongs to an Admin account and cannot be used here.'])->withInput();
-        }
 
         $data['id'] = $this->nextNumericId(Staff::class);
         $data['active'] = true;
@@ -137,9 +131,17 @@ class StaffController extends BmsController
         $this->authorizeBms('staff', 'update');
 
         $staff = Staff::query()->findOrFail($id);
+        $linkedUserId = $staff->user_id;
+
         $data = $request->validate([
             'name'   => 'required|string|max:120',
-            'email'  => 'required|email',
+            'email'  => [
+                'required', 'email',
+                // Ignore this staff member's own email
+                \Illuminate\Validation\Rule::unique('staff', 'email')->ignore($staff->id),
+                // Ignore this staff member's linked user account
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($linkedUserId),
+            ],
             'role'   => 'required|string|max:80',
             'branch' => 'required|string|max:80',
             'salary' => 'nullable|numeric|min:0',

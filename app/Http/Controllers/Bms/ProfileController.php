@@ -23,9 +23,18 @@ class ProfileController extends BmsController
     {
         $user = Auth::user();
 
+        // Find any staff record linked to this user so we can ignore it
+        $staffId = \App\Models\Staff::query()->where('user_id', $user->id)->value('id');
+
         $data = $request->validate([
             'name'  => 'required|string|max:120',
-            'email' => 'required|email|unique:users,email,'.$user->id,
+            'email' => [
+                'required', 'email',
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id),
+                $staffId
+                    ? \Illuminate\Validation\Rule::unique('staff', 'email')->ignore($staffId)
+                    : \Illuminate\Validation\Rule::unique('staff', 'email'),
+            ],
             'phone' => 'nullable|string|max:30',
         ]);
 
