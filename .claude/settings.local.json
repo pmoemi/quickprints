@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer require *)",
+      "Read(//e/Downloads/Wakili-Digital-main/Wakili-Digital-main/src/InvoiceTemplate/**)",
+      "Bash(Get-ChildItem -Path \"d:\\\\xampp\\\\htdocs\\\\quickprints\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(cd /d \"d:\\\\xampp\\\\htdocs\\\\quickprints\")",
+      "Bash(php artisan *)",
+      "Bash(cd /d d:\\\\xampp\\\\htdocs\\\\quickprints)",
+      "Bash(php -l app/Support/DocTemplateEngine.php)",
+      "Bash(php -l \"d:\\\\xampp\\\\htdocs\\\\quickprints\\\\app\\\\Support\\\\DocTemplateEngine.php\")",
+      "Bash(php -l \"d:\\\\xampp\\\\htdocs\\\\quickprints\\\\resources\\\\views\\\\pdf\\\\invoice.blade.php\")",
+      "Bash(php -l \"d:\\\\xampp\\\\htdocs\\\\quickprints\\\\resources\\\\views\\\\jobs\\\\invoice.blade.php\")",
+      "Bash(php -l \"d:\\\\xampp\\\\htdocs\\\\quickprints\\\\app\\\\Http\\\\Controllers\\\\Bms\\\\SettingsController.php\")",
+      "Bash(php -r ' *)",
+      "Bash(php -r \"echo file_get_contents\\('d:\\\\\\\\xampp\\\\\\\\htdocs\\\\\\\\quickprints\\\\\\\\resources\\\\\\\\views\\\\\\\\settings\\\\\\\\_invoice_form.blade.php'\\);\")",
+      "Bash(php -l \"d:\\\\xampp\\\\htdocs\\\\quickprints\\\\app\\\\Support\\\\BmsSettingsDefaults.php\")",
+      "Bash(php -r \"require 'vendor/autoload.php'; echo 'autoload ok';\")"
+    ]
+  }
+}

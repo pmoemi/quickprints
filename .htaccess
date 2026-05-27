@@ -1,0 +1,7 @@
+<IfModule mod_rewrite.c>
+    Options +FollowSymLinks
+    RewriteEngine On
+    RewriteBase /quickprints/
+    RewriteRule ^public/ - [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
