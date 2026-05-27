@@ -17,9 +17,9 @@ class DashboardController extends BmsController
         $this->authorizeBms('jobs', 'read');
 
         $jobs = $this->scopeBranch(PrintJob::query())->get();
-        $clients = Client::query()->get()->keyBy('id');
+        $clients = $this->scopedClientsKeyBy();
         $salesLog = $this->scopeBranch(SalesLog::query())->get();
-        $inventory = $this->scopeBranch(InventoryItem::query())->get();
+        $inventory = $this->scopedInventoryQuery()->get();
 
         $today = now()->toDateString();
         $branches = $this->branchNames();

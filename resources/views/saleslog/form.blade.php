@@ -20,11 +20,16 @@
       </div>
       <div class="fld">
         <label>Branch <span style="color:var(--red)">*</span></label>
-        <select name="branch" required>
-          @foreach($branches as $br)
-            <option value="{{ $br }}" {{ old('branch', $log->branch) === $br ? 'selected' : '' }}>{{ $br }}</option>
-          @endforeach
-        </select>
+        @if(count($branches) === 1)
+          <input type="hidden" name="branch" value="{{ $branches[0] }}">
+          <input type="text" value="{{ $branches[0] }}" disabled style="opacity:.85;cursor:not-allowed;">
+        @else
+          <select name="branch" required>
+            @foreach($branches as $br)
+              <option value="{{ $br }}" {{ old('branch', $log->branch ?? $branches[0] ?? null) === $br ? 'selected' : '' }}>{{ $br }}</option>
+            @endforeach
+          </select>
+        @endif
       </div>
     </div>
 
@@ -73,12 +78,23 @@
     <div class="form-row cols-2">
       <div class="fld">
         <label>Payment Status</label>
-        <select name="pay_status">
+        <select name="pay_status" id="pay-status-select">
           <option value="pending" {{ old('pay_status', $log->pay_status ?? 'pending') === 'pending' ? 'selected' : '' }}>Pending</option>
-          <option value="paid" {{ old('pay_status', $log->pay_status) === 'paid' ? 'selected' : '' }}>Paid</option>
+          <option value="partial" {{ old('pay_status', $log->pay_status ?? '') === 'partial' ? 'selected' : '' }}>Partially paid</option>
+          <option value="paid" {{ old('pay_status', $log->pay_status ?? '') === 'paid' ? 'selected' : '' }}>Fully paid</option>
         </select>
       </div>
+      <div class="fld" id="amount-paid-field" style="{{ old('pay_status', $log->pay_status ?? 'pending') === 'partial' ? '' : 'display:none;' }}">
+        <label>Amount Paid ({{ $bmsCurrency }})</label>
+        <input type="number" name="amount_paid" value="{{ old('amount_paid') }}" min="0" step="0.01" placeholder="Deposit / partial payment">
+      </div>
     </div>
+    <script>
+      document.getElementById('pay-status-select')?.addEventListener('change', function () {
+        var field = document.getElementById('amount-paid-field');
+        if (field) field.style.display = this.value === 'partial' ? '' : 'none';
+      });
+    </script>
 
     <div class="form-row">
       <div class="fld">

@@ -43,7 +43,7 @@
           <th>Branch</th>
           <th>Stage</th>
           <th>Amount</th>
-          <th>Paid</th>
+          <th>Payment</th>
           <th>Priority</th>
           <th>Deadline</th>
           <th>Actions</th>
@@ -70,11 +70,7 @@
             <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
             <td><span class="mono">{{ $bmsCurrency }} {{ number_format($job->amount) }}</span></td>
             <td>
-              @if($job->paid)
-                <span class="badge badge-green">Paid</span>
-              @else
-                <span class="badge badge-red">Unpaid</span>
-              @endif
+              @include('partials.job-payment-status', ['job' => $job])
             </td>
             <td>
               @if($job->priority === 'high') <span class="p-high">HIGH</span>

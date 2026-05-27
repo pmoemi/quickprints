@@ -15,10 +15,20 @@
   </div>
 </div>
 
-<div class="grid-4" style="margin-bottom:20px;">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px;">
   <div class="stat-card">
-    <div class="stat-label">Amount</div>
+    <div class="stat-label">Job Amount</div>
     <div class="stat-value accent" style="font-size:22px;">{{ $bmsCurrency }} {{ number_format($job->amount) }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Amount Paid</div>
+    <div class="stat-value" style="font-size:22px;color:var(--green);">{{ $bmsCurrency }} {{ number_format($job->amountPaid()) }}</div>
+    <div style="margin-top:8px;">
+      @include('partials.job-payment-status', ['job' => $job])
+    </div>
+    @if($job->balanceDue() > 0)
+      <div class="stat-sub" style="margin-top:6px;">Balance: {{ $bmsCurrency }} {{ number_format($job->balanceDue()) }}</div>
+    @endif
   </div>
   <div class="stat-card">
     <div class="stat-label">Branch</div>
@@ -60,14 +70,12 @@
       <tr>
         <td style="font-size:12px;color:var(--text3);padding:8px 0;border:none;">Payment</td>
         <td style="border:none;">
-          @if($job->paid)
-            <span class="badge badge-green">✓ Paid</span>
-          @else
-            <span class="badge badge-red">Unpaid</span>
+          @include('partials.job-payment-status', ['job' => $job])
+          @if($job->paymentStatus() !== 'full')
             <form method="POST" action="{{ route('bms.jobs.update', $job->id) }}" style="display:inline;margin-left:8px;">
               @csrf @method('PUT')
-              <input type="hidden" name="paid" value="1">
-              <button type="submit" class="btn btn-success btn-sm">Mark as Paid</button>
+              <input type="hidden" name="amount_paid" value="{{ $job->amount }}">
+              <button type="submit" class="btn btn-success btn-sm">Mark Fully Paid</button>
             </form>
           @endif
         </td>
@@ -118,10 +126,63 @@
   </div>
 </div>
 
-<div style="display:flex;gap:10px;">
-  <form method="POST" action="{{ route('bms.jobs.destroy', $job->id) }}" onsubmit="return confirm('Delete this job?')">
-    @csrf @method('DELETE')
-    <button type="submit" class="btn btn-danger btn-sm">Delete Job</button>
-  </form>
+@if(!empty($canDeleteJob))
+<div style="margin-top:20px;">
+  @if(!empty($requiresDeleteOtp))
+    <div class="card" style="max-width:520px;border-color:rgba(220,38,38,.35);">
+      <div class="card-header"><div class="card-title" style="color:var(--red);">Delete Job</div></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">
+        Admin approval is required. Request approval, then check your notifications for the delete code.
+      </p>
+      @if(empty($hasPendingDeleteRequest) && empty($hasPendingDeleteOtp))
+        <form method="POST" action="{{ route('bms.jobs.delete-otp.request', $job->id) }}" style="margin-bottom:14px;">
+          @csrf
+          <button type="submit" class="btn btn-secondary btn-sm">Request delete approval</button>
+        </form>
+      @elseif(!empty($hasPendingDeleteRequest))
+        <div class="alert alert-info" style="margin-bottom:14px;font-size:12px;">
+          Waiting for admin approval. You'll receive a notification with your delete code once approved.
+          <a href="{{ route('bms.notifications.index') }}" class="text-accent" style="margin-left:6px;">Open notifications</a>
+        </div>
+      @else
+        <div class="alert alert-success" style="margin-bottom:14px;font-size:12px;">
+          Your delete code was sent to your notifications.
+          <a href="{{ route('bms.notifications.index') }}" class="text-accent" style="margin-left:6px;">View code</a>
+        </div>
+      @endif
+      <form method="POST" action="{{ route('bms.jobs.destroy', $job->id) }}" onsubmit="return confirm('Delete this job permanently?')">
+        @csrf @method('DELETE')
+        <div class="fld" style="margin-bottom:12px;">
+          <label>Delete code</label>
+          <input type="text" name="delete_otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required placeholder="6-digit code from notifications" autocomplete="one-time-code" style="letter-spacing:3px;font-family:var(--mono);max-width:220px;">
+        </div>
+        <button type="submit" class="btn btn-danger btn-sm">Delete Job</button>
+      </form>
+    </div>
+  @else
+    @if(!empty($pendingDeleteRequests))
+      <div class="card" style="max-width:520px;margin-bottom:14px;border-color:rgba(234,88,12,.35);">
+        <div class="card-header"><div class="card-title" style="color:var(--orange);">Pending delete requests</div></div>
+        @foreach($pendingDeleteRequests as $pending)
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;{{ !$loop->last ? 'border-bottom:1px solid var(--border);' : '' }}">
+            <div style="font-size:13px;">
+              <strong>{{ $pending['requester_name'] }}</strong>
+              <span style="color:var(--text3);"> requested to delete this job</span>
+            </div>
+            <form method="POST" action="{{ route('bms.jobs.delete-otp.approve', $job->id) }}">
+              @csrf
+              <input type="hidden" name="requester_id" value="{{ $pending['requester_id'] }}">
+              <button type="submit" class="btn btn-primary btn-sm">Approve &amp; send code</button>
+            </form>
+          </div>
+        @endforeach
+      </div>
+    @endif
+    <form method="POST" action="{{ route('bms.jobs.destroy', $job->id) }}" onsubmit="return confirm('Delete this job?')">
+      @csrf @method('DELETE')
+      <button type="submit" class="btn btn-danger btn-sm">Delete Job</button>
+    </form>
+  @endif
 </div>
+@endif
 @endsection

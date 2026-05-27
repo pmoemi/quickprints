@@ -105,6 +105,12 @@
           <div class="fml-tot"><div class="fml-tot-k">VAT ({{ $vatRate }}%)</div><div class="fml-tot-v">{{ $symbol }}&nbsp;{{ number_format($vatAmt, 2) }}</div></div>
         @endif
         <div class="fml-tot grand"><div class="fml-tot-k">TOTAL</div><div class="fml-tot-v">{{ $symbol }}&nbsp;{{ number_format($job->amount, 2) }}</div></div>
+        @if($job->amountPaid() > 0)
+          <div class="fml-tot"><div class="fml-tot-k">Amount Paid</div><div class="fml-tot-v">{{ $symbol }}&nbsp;{{ number_format($job->amountPaid(), 2) }}</div></div>
+        @endif
+        @if($job->balanceDue() > 0)
+          <div class="fml-tot grand"><div class="fml-tot-k">Balance Due</div><div class="fml-tot-v">{{ $symbol }}&nbsp;{{ number_format($job->balanceDue(), 2) }}</div></div>
+        @endif
       </div>
     </div>
 
@@ -172,7 +178,11 @@
           <tr><td style="color:#888;">Subtotal (ex-VAT)</td><td class="text-right mono">{{ $symbol }} {{ number_format($net, 2) }}</td></tr>
           <tr><td style="color:#888;">VAT ({{ $vatRate }}%)</td><td class="text-right mono">{{ $symbol }} {{ number_format($vatAmt, 2) }}</td></tr>
         @endif
-        <tr class="total-final"><td>TOTAL DUE</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amount, 2) }}</td></tr>
+        <tr><td style="color:#888;">Job Total</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amount, 2) }}</td></tr>
+        @if($job->amountPaid() > 0)
+          <tr><td style="color:#888;">Amount Paid</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amountPaid(), 2) }}</td></tr>
+        @endif
+        <tr class="total-final"><td>{{ $job->balanceDue() > 0 ? 'Balance Due' : 'Total Due' }}</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->balanceDue(), 2) }}</td></tr>
       </table>
     </div>
 

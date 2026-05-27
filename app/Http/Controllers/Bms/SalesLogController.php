@@ -23,8 +23,11 @@ class SalesLogController extends BmsController
         $this->authorizeBms('saleslog', 'create');
 
         return view('saleslog.form', [
-            'log' => new SalesLog(['date' => now()->toDateString()]),
-            'branches' => $this->branchNames(),
+            'log' => new SalesLog([
+                'date' => now()->toDateString(),
+                'branch' => $this->defaultAssignableBranch(),
+            ]),
+            'branches' => $this->assignableBranchNames(),
         ]);
     }
 
@@ -38,10 +41,10 @@ class SalesLogController extends BmsController
             'phone' => 'nullable|string|max:40',
             'job_desc' => 'required|string|max:255',
             'category' => 'nullable|string|max:80',
-            'branch' => 'required|string|max:80',
+            'branch' => $this->assignableBranchRules(),
             'amount' => 'required|numeric|min:0',
             'pay_method' => 'nullable|string|max:40',
-            'pay_status' => 'nullable|string|max:40',
+            'pay_status' => 'nullable|string|in:pending,partial,paid',
             'notes' => 'nullable|string',
         ]);
 
@@ -49,9 +52,21 @@ class SalesLogController extends BmsController
         $data['id'] = $this->nextNumericId(SalesLog::class);
         $data['job_id'] = $jobId;
         $data['logged_by'] = $request->user()->name;
-        $data['pay_status'] = $data['pay_status'] ?? 'pending';
+        $payStatus = $data['pay_status'] ?? 'pending';
+        $data['pay_status'] = $payStatus;
+
+        if ($payStatus === 'partial') {
+            $request->validate(['amount_paid' => 'required|numeric|min:0.01']);
+        }
 
         SalesLog::query()->create($data);
+
+        $amount = (float) $data['amount'];
+        $amountPaid = match ($payStatus) {
+            'paid' => $amount,
+            'partial' => min((float) ($request->input('amount_paid') ?? 0), $amount),
+            default => 0.0,
+        };
 
         PrintJob::query()->create([
             'id' => $jobId,
@@ -60,8 +75,8 @@ class SalesLogController extends BmsController
             'branch' => $data['branch'],
             'category' => $data['category'] ?? null,
             'stage' => 'waiting',
-            'amount' => $data['amount'],
-            'paid' => ($data['pay_status'] ?? '') === 'paid',
+            'amount' => $amount,
+            'amount_paid' => $amountPaid,
             'priority' => 'medium',
             'notes' => $data['notes'] ?? null,
             'history' => [],

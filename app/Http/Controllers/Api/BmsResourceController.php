@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\JobDeleteOtpService;
+use App\Support\BmsNavigation;
 use App\Support\BmsPermissions;
 use App\Support\BmsResourceRegistry;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,8 +24,9 @@ class BmsResourceController extends Controller
         $query = $model::query()->orderBy('id');
 
         $user = $request->user();
-        if ($user && $user->branch && $user->branch !== 'all' && $this->hasBranchColumn($model)) {
-            $query->where('branch', $user->branch);
+        $branch = $this->branchFilterFor($user);
+        if ($branch && $this->hasBranchColumn($model)) {
+            $query->where('branch', $branch);
         }
 
         return response()->json($query->get()->map(fn (Model $row) => $this->serialize($row)));
@@ -56,8 +60,23 @@ class BmsResourceController extends Controller
     {
         $this->authorizeResource($request, $resource, 'delete');
 
+        $user = $request->user();
+        if ($resource === 'jobs' && JobDeleteOtpService::requiresOtp($user)) {
+            $request->validate([
+                'delete_otp' => ['required', 'string', 'regex:/^\d{6}$/'],
+            ]);
+
+            if (! JobDeleteOtpService::verify($id, $user, $request->input('delete_otp'))) {
+                abort(422, 'Invalid or expired delete code. Request a new code from admin.');
+            }
+        }
+
         $model = BmsResourceRegistry::model($resource);
         $row = $model::query()->findOrFail($id);
+        $branch = $this->branchFilterFor($request->user());
+        if ($branch && $this->hasBranchColumn($model) && ($row->branch ?? null) !== $branch) {
+            abort(404);
+        }
         $row->delete();
 
         return response()->json(['ok' => true]);
@@ -84,6 +103,21 @@ class BmsResourceController extends Controller
         }
 
         return $payload;
+    }
+
+    private function branchFilterFor(?User $user): ?string
+    {
+        if (! $user || ! $user->branch || $user->branch === 'all') {
+            if ($user && ! BmsNavigation::hasCap($user, 'allBranches')) {
+                return ($user->branch && $user->branch !== 'all') ? $user->branch : null;
+            }
+
+            $branch = session('bms_branch', 'all');
+
+            return $branch === 'all' ? null : $branch;
+        }
+
+        return $user->branch;
     }
 
     private function authorizeResource(Request $request, string $resource, string $action): void

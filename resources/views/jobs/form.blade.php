@@ -28,11 +28,16 @@
       </div>
       <div class="fld">
         <label>Branch <span style="color:var(--red)">*</span></label>
-        <select name="branch" required>
-          @foreach($branches as $br)
-            <option value="{{ $br }}" {{ old('branch', $job->branch) === $br ? 'selected' : '' }}>{{ $br }}</option>
-          @endforeach
-        </select>
+        @if(count($branches) === 1)
+          <input type="hidden" name="branch" value="{{ $branches[0] }}">
+          <input type="text" value="{{ $branches[0] }}" disabled style="opacity:.85;cursor:not-allowed;">
+        @else
+          <select name="branch" required>
+            @foreach($branches as $br)
+              <option value="{{ $br }}" {{ old('branch', $job->branch ?? $branches[0] ?? null) === $br ? 'selected' : '' }}>{{ $br }}</option>
+            @endforeach
+          </select>
+        @endif
       </div>
     </div>
 
@@ -94,11 +99,18 @@
     @if($editing)
     <div class="form-row cols-2">
       <div class="fld">
-        <label>Payment Status</label>
-        <select name="paid">
-          <option value="0" {{ !$job->paid ? 'selected' : '' }}>Unpaid</option>
-          <option value="1" {{ $job->paid ? 'selected' : '' }}>Paid</option>
-        </select>
+        <label>Total Amount Paid ({{ $bmsCurrency }})</label>
+        <input type="number" name="amount_paid" value="{{ old('amount_paid', $job->amountPaid()) }}" min="0" step="0.01" placeholder="0">
+        @error('amount_paid')<span style="font-size:11px;color:var(--red);">{{ $message }}</span>@enderror
+        <div style="margin-top:8px;">
+          @include('partials.job-payment-status', ['job' => $job])
+        </div>
+      </div>
+      <div class="fld">
+        <label>Balance Due</label>
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:var(--radius);font-size:15px;font-weight:600;margin-top:2px;">
+          {{ $bmsCurrency }} {{ number_format($job->balanceDue()) }}
+        </div>
       </div>
     </div>
     @endif

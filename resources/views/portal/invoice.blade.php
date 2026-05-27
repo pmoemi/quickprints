@@ -14,9 +14,7 @@
   $docRef  = e($job->id)
     . '<br>' . now()->format('d M Y')
     . ($job->deadline ? '<br>Due: ' . $job->deadline->format('d M Y') : '');
-  $docMeta = $job->paid
-    ? '<span class="badge badge-paid">PAID</span>'
-    : '<span class="badge badge-unpaid">UNPAID</span>';
+  $docMeta = \App\Support\JobPaymentBadge::invoiceMeta($job);
 
   $artworkUrl = $job->artwork_url ?? '';
   $hasLogo = BrandAssets::hasLogo($settings);
@@ -103,7 +101,7 @@ body{
 
   <div class="toolbar-actions">
     <a href="{{ route('portal.public.invoice.pdf', [$portal->token, $job->id]) }}" class="tbtn tbtn-primary" target="_blank">↓ Download PDF</a>
-    @if($job->paid)
+    @if($job->paymentStatus() === 'full')
       <a href="{{ route('portal.public.receipt.pdf', [$portal->token, $job->id]) }}" class="tbtn tbtn-secondary" target="_blank">↓ Receipt</a>
     @endif
     <button type="button" onclick="window.print()" class="tbtn tbtn-neutral">Print</button>

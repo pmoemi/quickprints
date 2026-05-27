@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Bms;
 
-use App\Models\Client;
 use App\Models\OpexEntry;
 use App\Models\PayrollEntry;
 use App\Models\PrintJob;
@@ -25,7 +24,7 @@ class BoardController extends BmsController
         return view('boards/designer', [
             'title' => 'Designer Board',
             'jobs' => $jobs,
-            'clients' => Client::query()->get()->keyBy('id'),
+            'clients' => $this->scopedClientsKeyBy(),
         ]);
     }
 
@@ -39,7 +38,7 @@ class BoardController extends BmsController
         return view('boards/operator', [
             'title' => 'Operator Queue',
             'jobs' => $jobs,
-            'clients' => Client::query()->get()->keyBy('id'),
+            'clients' => $this->scopedClientsKeyBy(),
         ]);
     }
 
@@ -53,7 +52,7 @@ class BoardController extends BmsController
         return view('boards/fabrication', [
             'title' => 'Fabrication Queue',
             'jobs' => $jobs,
-            'clients' => Client::query()->get()->keyBy('id'),
+            'clients' => $this->scopedClientsKeyBy(),
         ]);
     }
 
@@ -66,7 +65,7 @@ class BoardController extends BmsController
 
         return view('boards/delivery', [
             'jobs' => $jobs,
-            'clients' => Client::query()->get()->keyBy('id'),
+            'clients' => $this->scopedClientsKeyBy(),
         ]);
     }
 
@@ -82,7 +81,7 @@ class BoardController extends BmsController
     {
         $this->authorizeBms('jobs', 'read');
         $jobs = $this->scopeBranch(PrintJob::query())->orderByDesc('id')->get();
-        $clients = Client::query()->get()->keyBy('id');
+        $clients = $this->scopedClientsKeyBy();
 
         return view('payments', compact('jobs', 'clients'));
     }

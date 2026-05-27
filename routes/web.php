@@ -80,6 +80,8 @@ Route::name('bms.')->group(function () {
         Route::get('kanban', [KanbanController::class, 'index'])->name('kanban')->middleware('bms.page:kanban');
 
         Route::resource('jobs', JobController::class)->middleware('bms.page:jobs');
+        Route::post('jobs/{job}/delete-otp/request', [JobController::class, 'requestDeleteOtp'])->name('jobs.delete-otp.request')->middleware('bms.page:jobs');
+        Route::post('jobs/{job}/delete-otp/approve', [JobController::class, 'approveDeleteOtp'])->name('jobs.delete-otp.approve')->middleware('bms.page:jobs');
         Route::get('jobs/{job}/invoice', [JobController::class, 'invoice'])->name('jobs.invoice')->middleware('bms.page:jobs');
         Route::get('jobs/{job}/invoice/pdf', [JobController::class, 'invoicePdf'])->name('jobs.invoice.pdf')->middleware('bms.page:jobs');
         Route::get('jobs/{job}/receipt/pdf', [JobController::class, 'receiptPdf'])->name('jobs.receipt.pdf')->middleware('bms.page:jobs');

@@ -62,7 +62,9 @@
             <td><span class="badge badge-gray">{{ $log->pay_method ?? '—' }}</span></td>
             <td>
               @if($log->pay_status === 'paid')
-                <span class="badge badge-green">Paid</span>
+                <span class="badge badge-green">Fully paid</span>
+              @elseif($log->pay_status === 'partial')
+                <span class="badge badge-orange">Partially paid</span>
               @else
                 <span class="badge badge-orange">Pending</span>
               @endif

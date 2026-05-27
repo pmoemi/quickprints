@@ -57,11 +57,16 @@
       </div>
       <div class="fld">
         <label>Branch</label>
-        <select name="branch">
-          @foreach($branches as $br)
-            <option value="{{ $br }}" {{ old('branch', $item->branch ?? 'all') === $br ? 'selected' : '' }}>{{ $br === 'all' ? 'All Branches' : $br }}</option>
-          @endforeach
-        </select>
+        @if(count($branches) === 1)
+          <input type="hidden" name="branch" value="{{ $branches[0] }}">
+          <input type="text" value="{{ $branches[0] === 'all' ? 'All Branches' : $branches[0] }}" disabled style="opacity:.85;cursor:not-allowed;">
+        @else
+          <select name="branch" required>
+            @foreach($branches as $br)
+              <option value="{{ $br }}" {{ old('branch', $item->branch ?? $branches[0] ?? null) === $br ? 'selected' : '' }}>{{ $br === 'all' ? 'All Branches' : $br }}</option>
+            @endforeach
+          </select>
+        @endif
       </div>
     </div>
 

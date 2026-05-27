@@ -12,7 +12,7 @@ class InventoryController extends BmsController
     public function index(): View
     {
         $this->authorizeBms('inventory', 'read');
-        $items = $this->scopeBranch(InventoryItem::query())->orderBy('name')->get();
+        $items = $this->scopedInventoryQuery()->orderBy('name')->get();
 
         return view('inventory.index', compact('items'));
     }
@@ -22,8 +22,12 @@ class InventoryController extends BmsController
         $this->authorizeBms('inventory', 'create');
 
         return view('inventory.form', [
-            'item' => new InventoryItem(['qty' => 0, 'reorder_level' => 2]),
-            'branches' => array_merge(['all'], $this->branchNames()),
+            'item' => new InventoryItem([
+                'qty' => 0,
+                'reorder_level' => 2,
+                'branch' => $this->defaultAssignableBranch() ?? 'all',
+            ]),
+            'branches' => $this->assignableInventoryBranches(),
         ]);
     }
 
@@ -42,15 +46,15 @@ class InventoryController extends BmsController
         $this->authorizeBms('inventory', 'update');
 
         return view('inventory.form', [
-            'item' => InventoryItem::query()->findOrFail($id),
-            'branches' => array_merge(['all'], $this->branchNames()),
+            'item' => $this->findScopedInventoryItem($id),
+            'branches' => $this->assignableInventoryBranches(),
         ]);
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
         $this->authorizeBms('inventory', 'update');
-        InventoryItem::query()->findOrFail($id)->update($this->validated($request));
+        $this->findScopedInventoryItem($id)->update($this->validated($request));
 
         return redirect()->route('bms.inventory.index')->with('success', 'Item updated.');
     }
@@ -58,7 +62,7 @@ class InventoryController extends BmsController
     public function destroy(int $id): RedirectResponse
     {
         $this->authorizeBms('inventory', 'delete');
-        InventoryItem::query()->findOrFail($id)->delete();
+        $this->findScopedInventoryItem($id)->delete();
 
         return redirect()->route('bms.inventory.index')->with('success', 'Item deleted.');
     }
@@ -66,16 +70,20 @@ class InventoryController extends BmsController
     /** @return array<string, mixed> */
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:120',
             'cat' => 'nullable|string|max:80',
             'unit' => 'nullable|string|max:20',
             'qty' => 'nullable|numeric|min:0',
             'unit_cost' => 'nullable|numeric|min:0',
-            'branch' => 'nullable|string|max:80',
+            'branch' => $this->assignableInventoryBranchRules(),
             'reorder_level' => 'nullable|numeric|min:0',
         ]);
+
+        if (empty($data['branch'])) {
+            $data['branch'] = $this->defaultAssignableBranch() ?? 'all';
+        }
+
+        return $data;
     }
 }
-
-

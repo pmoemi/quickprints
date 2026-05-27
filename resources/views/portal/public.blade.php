@@ -200,6 +200,8 @@
     body.theme-light .badge-paid{background:rgba(34,197,94,.10);color:#15803d}
     .badge-unpaid{background:rgba(239,68,68,.12);color:#f87171}
     body.theme-light .badge-unpaid{background:rgba(239,68,68,.10);color:#b91c1c}
+    .badge-partial{background:rgba(234,88,12,.12);color:#fb923c}
+    body.theme-light .badge-partial{background:rgba(234,88,12,.10);color:#c2410c}
 
     .jobs-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
@@ -476,7 +478,7 @@
                 <th>Stage</th>
                 <th>Deadline</th>
                 <th>Amount</th>
-                <th>Paid</th>
+                <th>Payment</th>
               </tr>
         </thead>
         <tbody>
@@ -490,10 +492,12 @@
                   <td class="job-deadline">{{ $job->deadline ? $job->deadline->format('d M Y') : '—' }}</td>
                   <td class="job-amt">{{ $currency }} {{ number_format($job->amount) }}</td>
               <td>
-                @if($job->paid)
-                      <span class="badge badge-paid">Paid</span>
+                @if($job->paymentStatus() === 'full')
+                      <span class="badge badge-paid">Fully paid</span>
+                @elseif($job->paymentStatus() === 'partial')
+                      <span class="badge badge-partial">Partially paid</span>
                 @else
-                      <span class="badge badge-unpaid">Unpaid</span>
+                      <span class="badge badge-unpaid">Pending</span>
                 @endif
               </td>
             </tr>
@@ -524,10 +528,12 @@
                   <div class="job-card-amt">{{ $currency }} {{ number_format($job->amount) }}</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px">
-                  @if($job->paid)
-                    <span class="badge badge-paid">Paid</span>
+                  @if($job->paymentStatus() === 'full')
+                    <span class="badge badge-paid">Fully paid</span>
+                  @elseif($job->paymentStatus() === 'partial')
+                    <span class="badge badge-partial">Partially paid</span>
                   @else
-                    <span class="badge badge-unpaid">Unpaid</span>
+                    <span class="badge badge-unpaid">Pending</span>
                   @endif
                   <a href="{{ route('portal.public.invoice', [$portal->token, $job->id]) }}" class="job-card-link" target="_blank">View</a>
                 </div>
@@ -559,12 +565,12 @@
               </div>
               <div class="inv-row-amt">
                 {{ $currency }} {{ number_format($job->amount) }}
-                <small>{{ $job->paid ? 'Paid' : 'Unpaid' }}</small>
+                <small>{{ $job->paymentStatusLabel() }}</small>
               </div>
               <div class="inv-actions">
                 <a href="{{ route('portal.public.invoice', [$portal->token, $job->id]) }}" class="btn-inv primary" target="_blank">View</a>
                 <a href="{{ route('portal.public.invoice.pdf', [$portal->token, $job->id]) }}" class="btn-inv" target="_blank">PDF</a>
-                @if($job->paid)
+                @if($job->paymentStatus() === 'full')
                   <a href="{{ route('portal.public.receipt.pdf', [$portal->token, $job->id]) }}" class="btn-inv" target="_blank">Receipt</a>
     @endif
   </div>

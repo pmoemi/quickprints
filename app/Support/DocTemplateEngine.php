@@ -279,6 +279,7 @@ tbody td + td { border-left: 1px solid #f0f0f0; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
 .badge-paid     { background: #d1fae5; color: #065f46; }
 .badge-unpaid   { background: #fee2e2; color: #991b1b; }
+.badge-partial  { background: #fef3c7; color: #92400e; }
 .badge-draft    { background: #e5e7eb; color: #374151; }
 .badge-sent     { background: #dbeafe; color: #1d4ed8; }
 .badge-approved { background: #d1fae5; color: #065f46; }

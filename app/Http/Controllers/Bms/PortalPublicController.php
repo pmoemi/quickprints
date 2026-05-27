@@ -52,7 +52,7 @@ class PortalPublicController extends Controller
     public function receiptPdf(string $token, string $job): Response
     {
         [, $client, $job] = $this->resolvePortalJob($token, $job);
-        abort_if(! $job->paid, 404, 'Receipt only available for paid jobs.');
+        abort_if($job->paymentStatus() !== 'full', 404, 'Receipt only available for fully paid jobs.');
 
         $settings = $this->settingsService->all();
 

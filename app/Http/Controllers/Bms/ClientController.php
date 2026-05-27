@@ -12,7 +12,7 @@ class ClientController extends BmsController
     public function index(): View
     {
         $this->authorizeBms('clients', 'read');
-        $clients = $this->scopeBranch(Client::query())->orderBy('name')->get();
+        $clients = $this->scopedClientsQuery()->orderBy('name')->get();
 
         return view('clients.index', compact('clients'));
     }
@@ -22,8 +22,8 @@ class ClientController extends BmsController
         $this->authorizeBms('clients', 'create');
 
         return view('clients.form', [
-            'client' => new Client,
-            'branches' => $this->branchNames(),
+            'client' => new Client(['branch' => $this->defaultAssignableBranch()]),
+            'branches' => $this->assignableBranchNames(),
         ]);
     }
 
@@ -40,18 +40,17 @@ class ClientController extends BmsController
     public function edit(int $id): View
     {
         $this->authorizeBms('clients', 'update');
-        $client = Client::query()->findOrFail($id);
 
         return view('clients.form', [
-            'client' => $client,
-            'branches' => $this->branchNames(),
+            'client' => $this->findScopedClient($id),
+            'branches' => $this->assignableBranchNames(),
         ]);
     }
 
     public function update(Request $request, int $id): RedirectResponse
     {
         $this->authorizeBms('clients', 'update');
-        Client::query()->findOrFail($id)->update($this->validated($request));
+        $this->findScopedClient($id)->update($this->validated($request));
 
         return redirect()->route('bms.clients.index')->with('success', 'Client updated.');
     }
@@ -59,7 +58,7 @@ class ClientController extends BmsController
     public function destroy(int $id): RedirectResponse
     {
         $this->authorizeBms('clients', 'delete');
-        Client::query()->findOrFail($id)->delete();
+        $this->findScopedClient($id)->delete();
 
         return redirect()->route('bms.clients.index')->with('success', 'Client deleted.');
     }
@@ -67,15 +66,19 @@ class ClientController extends BmsController
     /** @return array<string, mixed> */
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:120',
             'phone' => 'nullable|string|max:40',
             'email' => 'nullable|email|max:120',
             'company' => 'nullable|string|max:120',
-            'branch' => 'nullable|string|max:80',
+            'branch' => $this->assignableBranchRules(),
             'notes' => 'nullable|string',
         ]);
+
+        if (empty($data['branch'])) {
+            $data['branch'] = $this->defaultAssignableBranch();
+        }
+
+        return $data;
     }
 }
-
-

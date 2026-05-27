@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Bms;
 use App\Http\Controllers\Controller;
 use App\Services\BmsSettingsService;
 use App\Support\BmsPermissions;
+use App\Support\BmsNavigation;
 use App\Support\BmsSettingsDefaults;
+use App\Models\Client;
+use App\Models\InventoryItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 abstract class BmsController extends Controller
 {
@@ -53,9 +58,122 @@ abstract class BmsController extends Controller
         return $query;
     }
 
+    protected function scopedClientsQuery(): Builder
+    {
+        return $this->scopeBranch(Client::query());
+    }
+
+    /** @return Collection<int|string, Client> */
+    protected function scopedClientsKeyBy(): Collection
+    {
+        return $this->scopedClientsQuery()->orderBy('name')->get()->keyBy('id');
+    }
+
+    protected function scopedInventoryQuery(): Builder
+    {
+        return $this->scopeBranch(InventoryItem::query());
+    }
+
+    protected function findScopedClient(int $id): Client
+    {
+        return $this->scopedClientsQuery()->findOrFail($id);
+    }
+
+    protected function findScopedInventoryItem(int $id): InventoryItem
+    {
+        return $this->scopedInventoryQuery()->findOrFail($id);
+    }
+
+    protected function canAssignGlobalInventory(): bool
+    {
+        $user = Auth::user();
+        if (! $user || ! BmsNavigation::hasCap($user, 'allBranches')) {
+            return false;
+        }
+
+        return session('bms_branch', 'all') === 'all';
+    }
+
+    /** @return list<string> */
+    protected function assignableInventoryBranches(): array
+    {
+        if ($this->canAssignGlobalInventory()) {
+            return array_merge(['all'], $this->assignableBranchNames());
+        }
+
+        return $this->assignableBranchNames();
+    }
+
+    /** @return list<string> */
+    protected function assignableInventoryBranchRules(): array
+    {
+        return ['required', 'string', 'max:80', Rule::in($this->assignableInventoryBranches())];
+    }
+
+    /** @return list<mixed> */
+    protected function scopedClientIdRules(): array
+    {
+        return [
+            'nullable',
+            'integer',
+            function (string $attribute, mixed $value, \Closure $fail): void {
+                if ($value === null || $value === '') {
+                    return;
+                }
+
+                if (! $this->scopedClientsQuery()->where('id', $value)->exists()) {
+                    $fail('The selected client is not available for your branch.');
+                }
+            },
+        ];
+    }
+
     protected function branchNames(): array
     {
         return $this->bmsSettings()['branches'] ?? BmsSettingsDefaults::all()['branches'];
+    }
+
+    /** Branches the current user may assign when creating/editing records. */
+    protected function assignableBranchNames(): array
+    {
+        $all = $this->branchNames();
+        $user = Auth::user();
+
+        if (! $user) {
+            return $all;
+        }
+
+        if (! BmsNavigation::hasCap($user, 'allBranches')) {
+            $branch = $user->branch;
+            if ($branch && $branch !== 'all' && in_array($branch, $all, true)) {
+                return [$branch];
+            }
+
+            $filtered = $this->branchFilter();
+            if ($filtered && in_array($filtered, $all, true)) {
+                return [$filtered];
+            }
+
+            return $all;
+        }
+
+        $pipeline = session('bms_branch', 'all');
+        if ($pipeline !== 'all' && in_array($pipeline, $all, true)) {
+            return [$pipeline];
+        }
+
+        return $all;
+    }
+
+    protected function defaultAssignableBranch(): ?string
+    {
+        return $this->assignableBranchNames()[0] ?? null;
+    }
+
+    /** @return list<string> */
+    protected function assignableBranchRules(): array
+    {
+        return ['required', 'string', 'max:80', Rule::in($this->assignableBranchNames())];
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Support\BmsAudit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PortalController extends BmsController
@@ -17,7 +18,9 @@ class PortalController extends BmsController
     {
         $this->authorizeBms('clients', 'read');
         $tokens = PortalToken::query()->with('client')->orderByDesc('created_at')->get();
-        $clients = Client::query()->orderBy('name')->get();
+        $scopedClientIds = $this->scopedClientsQuery()->pluck('id');
+        $tokens = $tokens->filter(fn ($token) => $scopedClientIds->contains($token->client_id))->values();
+        $clients = $this->scopedClientsQuery()->orderBy('name')->get();
 
         return view('portal.index', compact('tokens', 'clients'));
     }
@@ -26,7 +29,16 @@ class PortalController extends BmsController
     {
         $this->authorizeBms('clients', 'update');
         $data = $request->validate([
-            'client_id' => 'required|integer|exists:clients,id',
+            'client_id' => [
+                'required',
+                'integer',
+                Rule::exists('clients', 'id')->where(function ($query) {
+                    $branch = $this->branchFilter();
+                    if ($branch) {
+                        $query->where('branch', $branch);
+                    }
+                }),
+            ],
             'access_level' => 'nullable|string|max:40',
             'days' => 'nullable|integer|min:1|max:365',
         ]);

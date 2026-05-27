@@ -13,9 +13,7 @@
   $docRef = e($invPrefix . '-' . $job->id)
     . '<br>' . now()->format('d M Y')
     . ($job->deadline ? '<br>Due: ' . $job->deadline->format('d M Y') : '');
-  $docMeta = $job->paid
-    ? '<span class="badge badge-paid">PAID</span>'
-    : '<span class="badge badge-unpaid">UNPAID</span>';
+  $docMeta = \App\Support\JobPaymentBadge::invoiceMeta($job);
 
   $artworkUrl = $job->artwork_url ?? '';
   // Convert to data URI so dompdf can embed the image without HTTP requests

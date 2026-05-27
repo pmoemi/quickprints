@@ -9,10 +9,13 @@ use App\Models\Client;
 use App\Models\PrintJob;
 use App\Models\Staff;
 use App\Services\BmsMailer;
+use App\Support\BmsPermissions;
+use App\Services\JobDeleteOtpService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -38,7 +41,7 @@ class JobController extends BmsController
         }
 
         $jobs = $query->get();
-        $clients = Client::query()->orderBy('name')->get()->keyBy('id');
+        $clients = $this->scopedClientsKeyBy();
 
         return view('jobs.index', compact('jobs', 'clients'));
     }
@@ -48,9 +51,14 @@ class JobController extends BmsController
         $this->authorizeBms('jobs', 'create');
 
         return view('jobs.form', [
-            'job' => new PrintJob(['stage' => 'waiting', 'priority' => 'medium', 'paid' => false]),
-            'clients' => $this->scopeBranch(Client::query())->orderBy('name')->get(),
-            'branches' => $this->branchNames(),
+            'job' => new PrintJob([
+                'stage' => 'waiting',
+                'priority' => 'medium',
+                'paid' => false,
+                'branch' => $this->defaultAssignableBranch(),
+            ]),
+            'clients' => $this->scopedClientsQuery()->orderBy('name')->get(),
+            'branches' => $this->assignableBranchNames(),
             'staff' => Staff::query()->where('active', true)->orderBy('name')->get(),
         ]);
     }
@@ -60,13 +68,14 @@ class JobController extends BmsController
         $this->authorizeBms('jobs', 'create');
 
         $data = $request->validate([
-            'client_id' => 'nullable|integer',
+            'client_id' => $this->scopedClientIdRules(),
             'title' => 'required|string|max:255',
-            'branch' => 'required|string|max:80',
+            'branch' => $this->assignableBranchRules(),
             'category' => 'nullable|string|max:80',
             'stage' => 'nullable|string|max:40',
             'priority' => 'nullable|string|max:20',
             'amount' => 'nullable|numeric|min:0',
+            'amount_paid' => 'nullable|numeric|min:0',
             'deadline' => 'nullable|date',
             'notes' => 'nullable|string',
             'designer_id' => 'nullable|integer',
@@ -98,9 +107,27 @@ class JobController extends BmsController
         $this->authorizeBms('jobs', 'read');
 
         $job = PrintJob::query()->findOrFail($id);
-        $clients = Client::query()->get()->keyBy('id');
+        $clients = $this->scopedClientsKeyBy();
+        $canDeleteJob = BmsPermissions::allowed(Auth::user()?->role, 'jobs', 'delete');
+        $requiresDeleteOtp = JobDeleteOtpService::requiresOtp(Auth::user());
+        $userId = (int) Auth::id();
+        $hasPendingDeleteRequest = $requiresDeleteOtp
+            && JobDeleteOtpService::hasPendingRequest($job->id, $userId);
+        $hasPendingDeleteOtp = $requiresDeleteOtp
+            && JobDeleteOtpService::hasPendingOtp($job->id, $userId);
+        $pendingDeleteRequests = Auth::user()?->role === 'Admin'
+            ? JobDeleteOtpService::pendingRequestsForJob($job->id)
+            : [];
 
-        return view('jobs.show', compact('job', 'clients'));
+        return view('jobs.show', compact(
+            'job',
+            'clients',
+            'canDeleteJob',
+            'requiresDeleteOtp',
+            'hasPendingDeleteRequest',
+            'hasPendingDeleteOtp',
+            'pendingDeleteRequests',
+        ));
     }
 
     public function invoice(string $job): View
@@ -136,7 +163,7 @@ class JobController extends BmsController
         $client   = $job->client_id ? Client::query()->find($job->client_id) : null;
         $settings = $this->bmsSettings();
 
-        abort_if(! $job->paid, 404, 'Receipt only available for paid jobs.');
+        abort_if($job->paymentStatus() !== 'full', 404, 'Receipt only available for fully paid jobs.');
 
         $pdf = Pdf::loadView('pdf.receipt', compact('job', 'client', 'settings'))
             ->setPaper('a4', 'portrait');
@@ -200,8 +227,8 @@ class JobController extends BmsController
 
         return view('jobs.form', [
             'job' => $job,
-            'clients' => $this->scopeBranch(Client::query())->orderBy('name')->get(),
-            'branches' => $this->branchNames(),
+            'clients' => $this->scopedClientsQuery()->orderBy('name')->get(),
+            'branches' => $this->assignableBranchNames(),
             'staff' => Staff::query()->where('active', true)->orderBy('name')->get(),
         ]);
     }
@@ -213,13 +240,14 @@ class JobController extends BmsController
         $job = PrintJob::query()->findOrFail($id);
 
         $data = $request->validate([
-            'client_id' => 'nullable|integer',
+            'client_id' => $this->scopedClientIdRules(),
             'title' => 'sometimes|string|max:255',
-            'branch' => 'sometimes|string|max:80',
+            'branch' => $this->assignableBranchRules(),
             'category' => 'nullable|string|max:80',
             'stage' => 'nullable|string|max:40',
             'priority' => 'nullable|string|max:20',
             'amount' => 'nullable|numeric|min:0',
+            'amount_paid' => 'nullable|numeric|min:0',
             'paid' => 'nullable|boolean',
             'deadline' => 'nullable|date',
             'notes' => 'nullable|string',
@@ -235,6 +263,20 @@ class JobController extends BmsController
                 'at' => now()->toIso8601String(),
             ];
             $data['history'] = $history;
+        }
+
+        if ($request->has('paid') && ! $request->has('amount_paid')) {
+            $data['amount_paid'] = $request->boolean('paid')
+                ? (float) ($data['amount'] ?? $job->amount)
+                : 0;
+            unset($data['paid']);
+        }
+
+        if (isset($data['amount_paid'])) {
+            $data['amount_paid'] = min(
+                (float) $data['amount_paid'],
+                (float) ($data['amount'] ?? $job->amount)
+            );
         }
 
         if ($request->has('paid')) {
@@ -259,9 +301,51 @@ class JobController extends BmsController
         return redirect()->route('bms.jobs.show', $job->id)->with('success', 'Job updated.');
     }
 
-    public function destroy(string $id): RedirectResponse
+    public function requestDeleteOtp(string $id): RedirectResponse
     {
         $this->authorizeBms('jobs', 'delete');
+
+        $user = Auth::user();
+        if (! JobDeleteOtpService::requiresOtp($user)) {
+            return back()->with('error', 'Admin users can delete jobs without a code.');
+        }
+
+        PrintJob::query()->findOrFail($id);
+        JobDeleteOtpService::request($id, $user);
+
+        return back()->with('success', 'Delete request sent to admin. You will receive a notification with your delete code once approved.');
+    }
+
+    public function approveDeleteOtp(Request $request, string $id): RedirectResponse
+    {
+        if (Auth::user()?->role !== 'Admin') {
+            abort(403, 'Only admins can approve delete requests.');
+        }
+
+        $data = $request->validate([
+            'requester_id' => 'required|integer|exists:users,id',
+        ]);
+
+        PrintJob::query()->findOrFail($id);
+        JobDeleteOtpService::approve($id, (int) $data['requester_id'], Auth::user());
+
+        return back()->with('success', 'Delete code sent to the requester via notifications.');
+    }
+
+    public function destroy(Request $request, string $id): RedirectResponse
+    {
+        $this->authorizeBms('jobs', 'delete');
+
+        $user = Auth::user();
+        if (JobDeleteOtpService::requiresOtp($user)) {
+            $request->validate([
+                'delete_otp' => ['required', 'string', 'regex:/^\d{6}$/'],
+            ]);
+
+            if (! JobDeleteOtpService::verify($id, $user, $request->input('delete_otp'))) {
+                return back()->with('error', 'Invalid or expired delete code. Check your notifications for the latest code or request approval again.');
+            }
+        }
 
         PrintJob::query()->findOrFail($id)->delete();
 

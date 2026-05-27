@@ -70,9 +70,9 @@
   {{-- Totals --}}
   <div class="totals-wrap">
     <table class="totals-table">
-      <tr><td style="color:#666;">Amount Received</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amount, 2) }}</td></tr>
-      <tr><td style="color:#666;">Balance Due</td><td class="text-right mono">{{ $symbol }} 0.00</td></tr>
-      <tr class="total-final"><td>TOTAL PAID</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amount, 2) }}</td></tr>
+      <tr><td style="color:#666;">Amount Received</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amountPaid(), 2) }}</td></tr>
+      <tr><td style="color:#666;">Balance Due</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->balanceDue(), 2) }}</td></tr>
+      <tr class="total-final"><td>TOTAL PAID</td><td class="text-right mono">{{ $symbol }} {{ number_format($job->amountPaid(), 2) }}</td></tr>
     </table>
   </div>
 

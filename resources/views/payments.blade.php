@@ -9,10 +9,10 @@
 </div>
 
 @php
-  $unpaid = $jobs->whereIn('stage', ['ready','installed','paid'])->where('paid', false);
-  $paid   = $jobs->where('paid', true);
-  $totalOwed = $unpaid->sum('amount');
-  $totalPaid = $paid->sum('amount');
+  $unpaid = $jobs->filter(fn ($j) => $j->paymentStatus() !== 'full');
+  $paid   = $jobs->filter(fn ($j) => $j->amountPaid() > 0);
+  $totalOwed = $unpaid->sum(fn ($j) => $j->balanceDue());
+  $totalPaid = $jobs->sum(fn ($j) => $j->amountPaid());
 @endphp
 
 <div class="stats-grid" style="margin-bottom:24px;">
@@ -38,7 +38,7 @@
   <div class="tbl-wrap">
     <table>
       <thead>
-        <tr><th>Job ID</th><th>Title</th><th>Client</th><th>Branch</th><th>Stage</th><th>Amount</th><th>Deadline</th><th>Actions</th></tr>
+        <tr><th>Job ID</th><th>Title</th><th>Client</th><th>Branch</th><th>Stage</th><th>Status</th><th>Balance</th><th>Deadline</th><th>Actions</th></tr>
       </thead>
       <tbody>
         @forelse($unpaid as $job)
@@ -49,7 +49,8 @@
             <td>{{ $client?->name ?? '—' }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $job->branch }}</td>
             <td><span class="badge stage-{{ $job->stage }}">{{ $job->stage }}</span></td>
-            <td style="font-weight:600;">KES {{ number_format($job->amount) }}</td>
+            <td>@include('partials.job-payment-status', ['job' => $job])</td>
+            <td style="font-weight:600;">KES {{ number_format($job->balanceDue()) }}</td>
             <td style="font-size:12px;color:var(--yellow);">{{ $job->deadline ? $job->deadline->format('d M Y') : '—' }}</td>
             <td>
               <div style="display:flex;gap:4px;">
@@ -59,7 +60,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="8"><div class="empty-state" style="padding:20px 0;"><div class="empty-icon">💰</div><p>No outstanding payments</p></div></td></tr>
+          <tr><td colspan="9"><div class="empty-state" style="padding:20px 0;"><div class="empty-icon">💰</div><p>No outstanding payments</p></div></td></tr>
         @endforelse
       </tbody>
     </table>
@@ -81,7 +82,7 @@
             <td style="font-weight:600;">{{ $job->title }}</td>
             <td>{{ $client?->name ?? '—' }}</td>
             <td style="font-size:12px;color:var(--text2);">{{ $job->branch }}</td>
-            <td style="font-weight:600;color:var(--green);">KES {{ number_format($job->amount) }}</td>
+            <td style="font-weight:600;color:var(--green);">KES {{ number_format($job->amountPaid()) }}</td>
             <td>
               <div style="display:flex;gap:4px;">
                 <a href="{{ route('bms.jobs.show', $job->id) }}" class="btn btn-secondary btn-sm">View</a>

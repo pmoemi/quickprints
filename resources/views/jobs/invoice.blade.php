@@ -13,9 +13,7 @@
   $docRef  = e($invPrefix . '-' . $job->id)
     . '<br>' . now()->format('d M Y')
     . ($job->deadline ? '<br>Due: ' . $job->deadline->format('d M Y') : '');
-  $docMeta = $job->paid
-    ? '<span class="badge badge-paid">PAID</span>'
-    : '<span class="badge badge-unpaid">UNPAID</span>';
+  $docMeta = \App\Support\JobPaymentBadge::invoiceMeta($job);
 
   $artworkUrl = $job->artwork_url ?? '';
   $isFormal   = $engine->layout() === 'formal';
@@ -75,7 +73,7 @@ body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;
   @if(session('error'))<span class="flash-err">{{ session('error') }}</span>@endif
 
   <a href="{{ route('bms.jobs.invoice.pdf', $job->id) }}" class="tbtn tbtn-primary">&#8659; PDF Invoice</a>
-  @if($job->paid)
+  @if($job->paymentStatus() === 'full')
     <a href="{{ route('bms.jobs.receipt.pdf', $job->id) }}" class="tbtn tbtn-green">&#8659; PDF Receipt</a>
   @endif
   @if($client?->email)
