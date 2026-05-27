@@ -616,6 +616,7 @@ tr:last-child td{border-bottom:none;}
     </ol>
     <div class="pwa-reinstall-actions">
       <button type="button" class="pwa-reinstall-primary" id="pwa-reinstall-done">I've reinstalled</button>
+      <a class="pwa-reinstall-secondary" id="pwa-reinstall-browser" href="{{ url('/') }}" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Open in browser</a>
       <button type="button" class="pwa-reinstall-secondary" id="pwa-reinstall-later">Remind me later</button>
     </div>
   </div>
@@ -851,12 +852,15 @@ document.addEventListener('DOMContentLoaded', () => {
   var overlay = document.getElementById('pwa-reinstall-overlay');
   var doneBtn = document.getElementById('pwa-reinstall-done');
   var laterBtn = document.getElementById('pwa-reinstall-later');
+  var browserBtn = document.getElementById('pwa-reinstall-browser');
   var stepsEl = document.getElementById('pwa-reinstall-steps');
   if (!overlay || !doneBtn || !laterBtn) return;
 
   var ICON_VERSION_KEY = 'quickprints:pwa-icon-version';
+  var ICON_ACK_KEY = 'quickprints:pwa-icon-ack';
   var ICON_LATER_KEY = 'quickprints:pwa-icon-reinstall-later';
-  var currentVersion = document.querySelector('meta[name=pwa-icon-version]')?.content || '';
+  var meta = document.querySelector('meta[name=pwa-icon-version]');
+  var currentVersion = meta ? meta.getAttribute('content') : '';
 
   function isStandalone() {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -872,6 +876,11 @@ document.addEventListener('DOMContentLoaded', () => {
         '<li>Long-press the app icon → Remove App</li>' +
         '<li>Open Safari and go to QuickPrints</li>' +
         '<li>Tap Share → Add to Home Screen</li>';
+    } else if (stepsEl) {
+      stepsEl.innerHTML =
+        '<li>Remove this app from your home screen</li>' +
+        '<li>Tap <strong>Open in browser</strong> below (or open Chrome/Safari manually)</li>' +
+        '<li>Use the browser menu → Install app / Add to Home Screen</li>';
     }
     overlay.classList.add('show');
     overlay.setAttribute('aria-hidden', 'false');
@@ -882,39 +891,69 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.setAttribute('aria-hidden', 'true');
   }
 
-  if (!currentVersion) return;
-
-  var storedVersion = localStorage.getItem(ICON_VERSION_KEY);
-  var laterUntil = Number(localStorage.getItem(ICON_LATER_KEY) || 0);
-
-  if (!storedVersion) {
-    if (isStandalone()) {
-      showReinstallPrompt();
+  function acknowledgeReinstall() {
+    if (!currentVersion) {
+      hideReinstallPrompt();
       return;
     }
-    localStorage.setItem(ICON_VERSION_KEY, currentVersion);
+    try {
+      localStorage.setItem(ICON_VERSION_KEY, currentVersion);
+      localStorage.setItem(ICON_ACK_KEY, currentVersion);
+      localStorage.removeItem(ICON_LATER_KEY);
+    } catch (e) {}
+    hideReinstallPrompt();
+  }
+
+  function shouldShowPrompt() {
+    if (!currentVersion || !isStandalone()) return false;
+
+    try {
+      if (localStorage.getItem(ICON_ACK_KEY) === currentVersion) return false;
+      var laterUntil = Number(localStorage.getItem(ICON_LATER_KEY) || 0);
+      if (Date.now() <= laterUntil) return false;
+      var storedVersion = localStorage.getItem(ICON_VERSION_KEY);
+      if (!storedVersion || storedVersion !== currentVersion) return true;
+    } catch (e) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Attach handlers FIRST — early return previously skipped these for new installs
+  doneBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    acknowledgeReinstall();
+  });
+
+  laterBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    try {
+      localStorage.setItem(ICON_LATER_KEY, String(Date.now() + 24 * 60 * 60 * 1000));
+    } catch (err) {}
+    hideReinstallPrompt();
+  });
+
+  if (browserBtn) {
+    browserBtn.addEventListener('click', function() {
+      try { localStorage.setItem(ICON_LATER_KEY, String(Date.now() + 60 * 60 * 1000)); } catch (e) {}
+    });
+  }
+
+  window.addEventListener('appinstalled', function() {
+    acknowledgeReinstall();
+  });
+
+  if (!currentVersion) return;
+
+  if (!isStandalone()) {
+    try { localStorage.setItem(ICON_VERSION_KEY, currentVersion); } catch (e) {}
     return;
   }
 
-  if (isStandalone() && storedVersion !== currentVersion && Date.now() > laterUntil) {
+  if (shouldShowPrompt()) {
     showReinstallPrompt();
   }
-
-  doneBtn.addEventListener('click', function() {
-    localStorage.setItem(ICON_VERSION_KEY, currentVersion);
-    localStorage.removeItem(ICON_LATER_KEY);
-    hideReinstallPrompt();
-  });
-
-  laterBtn.addEventListener('click', function() {
-    localStorage.setItem(ICON_LATER_KEY, String(Date.now() + 24 * 60 * 60 * 1000));
-    hideReinstallPrompt();
-  });
-
-  window.addEventListener('appinstalled', function() {
-    localStorage.setItem(ICON_VERSION_KEY, currentVersion);
-    localStorage.removeItem(ICON_LATER_KEY);
-  });
 })();
 </script>
 @stack('scripts')
