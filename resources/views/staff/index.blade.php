@@ -31,14 +31,15 @@
 @endif
 
 <div class="card" style="padding:0;overflow:hidden;">
-  <table style="width:100%;border-collapse:collapse;">
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+  <table id="staff-table" style="width:100%;border-collapse:collapse;min-width:560px;">
     <thead>
       <tr>
         <th style="padding:10px 14px;">Name</th>
         <th>Role</th>
-        <th>Email</th>
-        <th>Branch</th>
-        <th>Salary</th>
+        <th class="col-email">Email</th>
+        <th class="col-branch">Branch</th>
+        <th class="col-salary">Salary</th>
         <th>Status</th>
         <th>Actions</th>
       </tr>
@@ -59,9 +60,9 @@
             </div>
           </td>
           <td><span class="badge badge-blue">{{ $member->role }}</span></td>
-          <td style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
-          <td><span style="font-size:12px;color:var(--text2);">{{ $member->branch === 'all' ? 'All' : ($member->branch ?? '—') }}</span></td>
-          <td class="mono" style="font-size:12px;">{{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}</td>
+          <td class="col-email" style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
+          <td class="col-branch"><span style="font-size:12px;color:var(--text2);">{{ $member->branch === 'all' ? 'All' : ($member->branch ?? '—') }}</span></td>
+          <td class="col-salary mono" style="font-size:12px;">{{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}</td>
           <td>
             @if($member->active)
               <span class="badge badge-green">Active</span>
@@ -132,14 +133,16 @@
       @endforelse
     </tbody>
   </table>
+  </div>{{-- /scroll wrapper --}}
 </div>
 
 <style>
+@media(max-width:640px){
+  .col-email,.col-branch,.col-salary{ display:none; }
+  .btn-sm{ padding:5px 8px; font-size:11px; }
+}
 @media(max-width:768px){
-  #staff-table th:nth-child(4),
-  #staff-table td:nth-child(4),
-  #staff-table th:nth-child(5),
-  #staff-table td:nth-child(5){ display:none; }
+  .col-salary{ display:none; }
 }
 </style>
 
