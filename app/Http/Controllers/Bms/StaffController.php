@@ -92,11 +92,17 @@ class StaffController extends BmsController
     public function edit(int $id): View
     {
         $this->authorizeBms('staff', 'update');
+        $member = Staff::query()->findOrFail($id);
+
+        // Linked user — check if they're Admin
+        $linkedUser = $member->user_id ? User::query()->find($member->user_id) : null;
+        $isAdminUser = $linkedUser?->role === 'Admin';
 
         return view('staff.form', [
-            'member' => Staff::query()->findOrFail($id),
-            'branches' => $this->branchNames(),
-            'roles' => $this->roles(),
+            'member'      => $member,
+            'branches'    => $this->branchNames(),
+            'roles'       => $this->roles(),
+            'isAdminUser' => $isAdminUser,
         ]);
     }
 
@@ -106,9 +112,9 @@ class StaffController extends BmsController
 
         $staff = Staff::query()->findOrFail($id);
         $data = $request->validate([
-            'name' => 'required|string|max:120',
-            'email' => 'required|email',
-            'role' => 'required|string|max:80',
+            'name'   => 'required|string|max:120',
+            'email'  => 'required|email',
+            'role'   => 'required|string|max:80',
             'branch' => 'required|string|max:80',
             'salary' => 'nullable|numeric|min:0',
             'active' => 'nullable|boolean',
@@ -118,10 +124,21 @@ class StaffController extends BmsController
         $staff->update($data);
 
         if ($staff->user_id) {
-            User::query()->where('id', $staff->user_id)->update([
-                'name' => $data['name'],
-                'email' => strtolower($data['email']),
-                'role' => $data['role'],
+            $linkedUser = User::query()->find($staff->user_id);
+
+            // Never silently overwrite the Admin role via staff form
+            $newRole = $data['role'];
+            if ($linkedUser?->role === 'Admin' && $newRole !== 'Admin') {
+                // Only allow demotion if the current user is themselves an Admin
+                if (auth()->user()?->role !== 'Admin') {
+                    $newRole = 'Admin'; // Restore — non-admin cannot demote Admin
+                }
+            }
+
+            $linkedUser?->update([
+                'name'   => $data['name'],
+                'email'  => strtolower($data['email']),
+                'role'   => $newRole,
                 'branch' => $data['branch'],
             ]);
         }
@@ -140,7 +157,12 @@ class StaffController extends BmsController
     /** @return list<string> */
     private function roles(): array
     {
-        return array_keys(BmsSettingsDefaults::roles());
+        $roles = array_keys(BmsSettingsDefaults::roles());
+        // Admin can assign the Admin role; others only see configurable roles
+        if (auth()->user()?->role === 'Admin') {
+            array_unshift($roles, 'Admin');
+        }
+        return $roles;
     }
 }
 

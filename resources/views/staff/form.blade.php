@@ -1,7 +1,7 @@
 ﻿@extends('layouts.bms')
 
 @section('content')
-@php $editing = $member->exists; @endphp
+@php $editing = $member->exists; $isAdminUser = $isAdminUser ?? false; @endphp
 
 <div class="page-header">
   <div><div class="page-title">{{ $editing ? 'Edit Staff Member' : 'Add Staff Member' }}</div></div>
@@ -20,12 +20,24 @@
       </div>
       <div class="fld">
         <label>Role <span style="color:var(--red)">*</span></label>
-        <select name="role" required>
-          <option value="">— Select —</option>
-          @foreach($roles as $r)
-            <option value="{{ $r }}" {{ old('role', $member->role) === $r ? 'selected' : '' }}>{{ $r }}</option>
-          @endforeach
-        </select>
+        @if($isAdminUser && auth()->user()?->role !== 'Admin')
+          {{-- Non-admin cannot change another Admin's role --}}
+          <input type="text" value="Admin (built-in)" disabled style="opacity:.6;cursor:not-allowed;">
+          <input type="hidden" name="role" value="Admin">
+          <div style="font-size:11px;color:var(--yellow);margin-top:4px;">⚠ Only an Admin can change this role.</div>
+        @else
+          <select name="role" required>
+            <option value="">— Select —</option>
+            @foreach($roles as $r)
+              <option value="{{ $r }}" {{ old('role', $member->role) === $r ? 'selected' : '' }}>
+                {{ $r }}{{ $r === 'Admin' ? ' (built-in superuser)' : '' }}
+              </option>
+            @endforeach
+          </select>
+          @if($isAdminUser)
+            <div style="font-size:11px;color:var(--yellow);margin-top:4px;">⚠ This user has full Admin access. Changing their role will remove all Admin privileges.</div>
+          @endif
+        @endif
       </div>
     </div>
     <div class="form-row cols-2">

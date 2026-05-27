@@ -161,7 +161,7 @@
 </div>
 
 @if(!$canResetData)
-  <div class="alert alert-info" style="margin-top:16px;">Data reset tools are available to Admin users only.</div>
+  <div class="alert alert-info" style="margin-top:16px;">Data reset tools require <strong>settings → delete</strong> permission (Admin or equivalent role).</div>
 @endif
 @endsection
 
