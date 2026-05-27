@@ -26,6 +26,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Invoice {{ $job->id }}</title>
+@include('partials.favicon')
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'IBM Plex Sans',Arial,sans-serif;background:#f1f5f9;color:#111;}

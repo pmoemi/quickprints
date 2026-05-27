@@ -6,6 +6,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="theme-color" content="{{ $bmsBrand['primary'] ?? '#b91c1c' }}">
 <title>{{ $bmsSettings['company_name'] ?? config('app.name', 'QuickPrints') }} — BMS</title>
+@include('partials.favicon', ['settings' => $bmsSettings])
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {

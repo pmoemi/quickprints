@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BmsSetting;
+use App\Support\BrandAssets;
 use App\Support\BmsPermissions;
 use App\Support\BmsSettingsDefaults;
 use App\Support\BranchUsage;
@@ -22,10 +23,10 @@ class SettingsController extends Controller
             'company_tagline' => $settings['company_tagline'],
             'brand_color' => $settings['brand_color'],
             'brand_color_secondary' => $settings['brand_color_secondary'],
-            'logo_url' => $settings['logo_url'],
-            'logo_url_dark' => $settings['logo_url_dark'],
-            'logo_url_light' => $settings['logo_url_light'],
-            'favicon_url' => $settings['favicon_url'],
+            'logo_url' => BrandAssets::publicUrl($settings['logo_url'] ?? null),
+            'logo_url_dark' => BrandAssets::publicUrl($settings['logo_url_dark'] ?? null),
+            'logo_url_light' => BrandAssets::publicUrl($settings['logo_url_light'] ?? null),
+            'favicon_url' => BrandAssets::faviconUrl($settings),
         ]);
     }
 
@@ -242,7 +243,7 @@ class SettingsController extends Controller
         }
 
         $path = $request->file($field)->store('branding', 'public');
-        $url = Storage::disk('public')->url($path);
+        $url = BrandAssets::storagePathUrl($path);
 
         $current[$settingKey] = $url;
         $row->data = $current;

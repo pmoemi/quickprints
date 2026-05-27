@@ -87,7 +87,7 @@
   <div class="card-header"><div class="card-title">Favicon</div></div>
   @if(!empty($settings['favicon_url']))
     <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:center;gap:12px;">
-      <img src="{{ $settings['favicon_url'] }}" alt="Favicon" style="width:32px;height:32px;object-fit:contain;">
+      <img src="{{ \App\Support\BrandAssets::faviconUrl($settings) }}" alt="Favicon" style="width:32px;height:32px;object-fit:contain;">
       <span style="font-size:12px;color:var(--text3);">Shown in browser tabs</span>
     </div>
   @else

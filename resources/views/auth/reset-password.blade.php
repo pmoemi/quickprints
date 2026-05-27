@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ $settings['company_name'] ?? 'QuickPrints' }} — Reset Password</title>
+@include('partials.favicon')
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#111318;--bg2:#1a1d24;--bg3:#222730;--border:#2e3340;--border2:#3a4050;--text:#e8eaf0;--text2:#9ba3b8;--text3:#5a6280;--accent:#b91c1c;--accent2:#dc2626;--red:#dc2626;--red-dim:rgba(220,38,38,.14);--radius:6px;--font:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;}

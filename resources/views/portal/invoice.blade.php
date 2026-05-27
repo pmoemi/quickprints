@@ -29,9 +29,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="{{ $brand['primary'] }}">
 <title>Invoice {{ $job->id }} · {{ $settings['company_name'] ?? 'QuickPrints' }}</title>
-@if(!empty($settings['favicon_url']))
-  <link rel="icon" href="{{ $settings['favicon_url'] }}">
-@endif
+@include('partials.favicon')
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}

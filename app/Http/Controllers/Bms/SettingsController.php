@@ -12,6 +12,7 @@ use App\Support\DocTemplateEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Support\BrandAssets;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -131,7 +132,7 @@ class SettingsController extends BmsController
         };
 
         $path = $data['logo']->store('branding', 'public');
-        $this->settings->update([$key => Storage::disk('public')->url($path)]);
+        $this->settings->update([$key => BrandAssets::storagePathUrl($path)]);
 
         $label = match ($data['variant']) {
             'dark' => 'Dark mode logo uploaded.',
@@ -147,7 +148,7 @@ class SettingsController extends BmsController
         $this->authorizeBms('settings', 'update');
         $path = $request->validate(['favicon' => 'required|file|max:512|mimes:png,jpg,jpeg,gif,ico,svg'])['favicon']
             ->store('branding', 'public');
-        $this->settings->update(['favicon_url' => Storage::disk('public')->url($path)]);
+        $this->settings->update(['favicon_url' => BrandAssets::storagePathUrl($path)]);
 
         return back()->with('success', 'Favicon uploaded.');
     }
