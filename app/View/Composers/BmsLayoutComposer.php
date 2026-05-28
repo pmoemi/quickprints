@@ -5,6 +5,7 @@ namespace App\View\Composers;
 use App\Models\ServiceItem;
 use App\Services\BmsSettingsService;
 use App\Support\BranchScope;
+use App\Support\BmsNavigation;
 use App\Support\BmsPermissions;
 use App\Support\BrandColors;
 use Illuminate\Support\Facades\Auth;
