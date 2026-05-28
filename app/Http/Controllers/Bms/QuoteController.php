@@ -58,7 +58,7 @@ class QuoteController extends BmsController
         $this->authorizeBms('quotes', 'update');
 
         return view('quotes.form', [
-            'quote' => Quote::query()->findOrFail($id),
+            'quote' => $this->findScopedQuote($id),
             'branches' => $this->branchNames(),
         ]);
     }
@@ -66,7 +66,7 @@ class QuoteController extends BmsController
     public function update(Request $request, int $id): RedirectResponse
     {
         $this->authorizeBms('quotes', 'update');
-        Quote::query()->findOrFail($id)->update($this->validated($request));
+        $this->findScopedQuote($id)->update($this->validated($request));
 
         return redirect()->route('bms.quotes.index')->with('success', 'Quote updated.');
     }
@@ -74,7 +74,7 @@ class QuoteController extends BmsController
     public function destroy(int $id): RedirectResponse
     {
         $this->authorizeBms('quotes', 'delete');
-        Quote::query()->findOrFail($id)->delete();
+        $this->findScopedQuote($id)->delete();
 
         return redirect()->route('bms.quotes.index')->with('success', 'Quote deleted.');
     }
@@ -83,7 +83,7 @@ class QuoteController extends BmsController
     {
         $this->authorizeBms('quotes', 'read');
 
-        $quote    = Quote::query()->findOrFail($id);
+        $quote    = $this->findScopedQuote($id);
         $settings = $this->bmsSettings();
 
         $pdf = Pdf::loadView('pdf.quote', compact('quote', 'settings'))

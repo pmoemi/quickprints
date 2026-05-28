@@ -79,6 +79,7 @@ Route::name('bms.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard')->middleware('bms.page:dashboard');
         Route::get('kanban', [KanbanController::class, 'index'])->name('kanban')->middleware('bms.page:kanban');
 
+        Route::post('jobs/clients/quick', [JobController::class, 'quickStoreClient'])->name('jobs.clients.quick')->middleware('bms.page:jobs');
         Route::resource('jobs', JobController::class)->middleware('bms.page:jobs');
         Route::post('jobs/{job}/delete-otp/request', [JobController::class, 'requestDeleteOtp'])->name('jobs.delete-otp.request')->middleware('bms.page:jobs');
         Route::post('jobs/{job}/delete-otp/approve', [JobController::class, 'approveDeleteOtp'])->name('jobs.delete-otp.approve')->middleware('bms.page:jobs');

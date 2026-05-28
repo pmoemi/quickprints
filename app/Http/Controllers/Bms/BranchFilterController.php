@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bms;
 
+use App\Support\BranchScope;
 use App\Support\BmsNavigation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class BranchFilterController extends BmsController
     {
         $user = $request->user();
         if (! BmsNavigation::hasCap($user, 'allBranches')) {
-            session(['bms_branch' => $user->branch ?? 'all']);
+            session(['bms_branch' => BranchScope::userBranch($user) ?? 'all']);
         } else {
             $branch = $request->input('branch', 'all');
             session(['bms_branch' => $branch]);

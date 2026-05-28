@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Bms\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\BranchScope;
 use App\Support\BmsNavigation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +41,7 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
         $user = Auth::user();
-        session(['bms_branch' => $user->branch && $user->branch !== 'all' ? $user->branch : 'all']);
+        session(['bms_branch' => BranchScope::sessionDefault($user)]);
 
         return redirect()->intended(route(BmsNavigation::defaultRoute($user)));
     }

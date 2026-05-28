@@ -18,7 +18,11 @@ class StaffController extends BmsController
     {
         $this->authorizeBms('staff', 'read');
 
-        $branch = request('branch', $this->branchFilter() ?? 'all');
+        if ($this->canViewAllBranches()) {
+            $branch = request('branch', $this->branchFilter() ?? 'all');
+        } else {
+            $branch = $this->userBranch() ?? 'all';
+        }
         $q = trim((string) request('q', ''));
 
         $query = Staff::query()->orderBy('name');
@@ -93,6 +97,7 @@ class StaffController extends BmsController
         $data['id'] = $this->nextNumericId(Staff::class);
         $data['active'] = true;
         $data['is_designer'] = $request->boolean('is_designer');
+        $data['salary'] = $data['salary'] ?? 0;
         $data['color'] = '#'.substr(md5($data['email']), 0, 6);
 
         $password = $data['password'] ?? ('QP@'.bin2hex(random_bytes(4)).'1!');
@@ -180,6 +185,7 @@ class StaffController extends BmsController
 
         $data['active'] = $request->boolean('active');
         $data['is_designer'] = $request->boolean('is_designer');
+        $data['salary'] = $data['salary'] ?? 0;
         $staff->update($data);
 
         if ($staff->user_id) {

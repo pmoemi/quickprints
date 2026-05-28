@@ -113,7 +113,7 @@ class BoardController extends BmsController
         $to       = $request->filled('to')
             ? Carbon::parse($request->input('to'))->endOfDay()
             : now()->endOfDay();
-        $branches = $this->branchNames();
+        $branches = $this->visibleBranchNames();
         $symbol   = $settings['currency_symbol'] ?? 'KSh';
         $vatRate  = (float) ($settings['vat_rate'] ?? 16);
 
@@ -134,7 +134,7 @@ class BoardController extends BmsController
     public function advanceStage(Request $request, string $id): RedirectResponse
     {
         $this->authorizeBms('jobs', 'update');
-        $job = PrintJob::query()->findOrFail($id);
+        $job = $this->findScopedJob($id);
         $stage = $request->validate(['stage' => 'required|string'])['stage'];
 
         $history = $job->history ?? [];

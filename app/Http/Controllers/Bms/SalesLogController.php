@@ -94,7 +94,7 @@ class SalesLogController extends BmsController
     public function destroy(int $id): RedirectResponse // route param: id
     {
         $this->authorizeBms('saleslog', 'delete');
-        SalesLog::query()->findOrFail($id)->delete();
+        $this->findScopedSalesLog($id)->delete();
 
         return redirect()->route('bms.saleslog.index')->with('success', 'Sale entry deleted.');
     }

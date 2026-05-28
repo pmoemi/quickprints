@@ -22,7 +22,7 @@ class DashboardController extends BmsController
         $inventory = $this->scopedInventoryQuery()->get();
 
         $today = now()->toDateString();
-        $branches = $this->branchNames();
+        $branches = $this->visibleBranchNames();
 
         $branchStats = collect($branches)->map(function (string $branch) use ($jobs) {
             $bj = $jobs->where('branch', $branch);

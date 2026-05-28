@@ -12,9 +12,11 @@ use App\Support\BmsPermissions;
 use App\Services\JobDeleteOtpService;
 use App\Services\JobDesignerNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -68,7 +70,7 @@ class JobController extends BmsController
         $this->authorizeBms('jobs', 'create');
 
         $data = $request->validate([
-            'client_id' => $this->scopedClientIdRules(),
+            'client_id' => $this->requiredScopedClientIdRules(),
             'title' => 'required|string|max:255',
             'branch' => $this->assignableBranchRules(),
             'category' => 'nullable|string|max:80',
@@ -84,6 +86,8 @@ class JobController extends BmsController
         $data['id'] = $this->nextJobId($data['branch'] ?? null);
         $data['stage'] = 'designing';
         $data['paid'] = false;
+        $data['amount'] = $data['amount'] ?? 0;
+        $data['amount_paid'] = $data['amount_paid'] ?? 0;
         $data['history'] = [['action' => 'Job created and assigned to designer', 'by' => $request->user()->name, 'at' => now()->toIso8601String()]];
 
         $job = PrintJob::query()->create($data);
@@ -103,11 +107,39 @@ class JobController extends BmsController
         return redirect()->route('bms.jobs.index')->with('success', 'Job created.');
     }
 
+    public function quickStoreClient(Request $request): JsonResponse
+    {
+        $this->authorizeBms('jobs', 'create');
+
+        $branch = $request->validate([
+            'branch' => $this->assignableBranchRules(),
+        ])['branch'];
+
+        try {
+            $client = $this->createInlineClient($request, $branch);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Could not save client.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Client added.',
+            'client' => [
+                'id' => $client->id,
+                'name' => $client->name,
+                'phone' => $client->phone,
+                'email' => $client->email,
+            ],
+        ]);
+    }
+
     public function show(string $id): View
     {
         $this->authorizeBms('jobs', 'read');
 
-        $job = PrintJob::query()->findOrFail($id);
+        $job = $this->findScopedJob($id);
         $clients = $this->scopedClientsKeyBy();
         $canDeleteJob = BmsPermissions::allowed(Auth::user()?->role, 'jobs', 'delete');
         $requiresDeleteOtp = JobDeleteOtpService::requiresOtp(Auth::user());
@@ -135,7 +167,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'read');
 
-        $job      = PrintJob::query()->findOrFail($job);
+        $job      = $this->findScopedJob($job);
         $client   = $job->client_id ? Client::query()->find($job->client_id) : null;
         $settings = $this->bmsSettings();
         $backUrl  = $this->resolveBackUrl($request, route('bms.jobs.show', $job->id));
@@ -147,7 +179,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'read');
 
-        $job      = PrintJob::query()->findOrFail($job);
+        $job      = $this->findScopedJob($job);
         $client   = $job->client_id ? Client::query()->find($job->client_id) : null;
         $settings = $this->bmsSettings();
 
@@ -161,7 +193,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'read');
 
-        $job      = PrintJob::query()->findOrFail($job);
+        $job      = $this->findScopedJob($job);
         $client   = $job->client_id ? Client::query()->find($job->client_id) : null;
         $settings = $this->bmsSettings();
 
@@ -177,7 +209,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'write');
 
-        $job  = PrintJob::findOrFail($jobId);
+        $job = $this->findScopedJob($jobId);
         $path = $request->validate(['artwork' => 'required|image|max:8192'])['artwork']
             ->store('job-artwork', 'public');
         $url  = Storage::disk('public')->url($path);
@@ -191,7 +223,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'write');
 
-        $job = PrintJob::findOrFail($jobId);
+        $job = $this->findScopedJob($jobId);
         $job->update(['artwork_url' => null]);
 
         return response()->json(['ok' => true]);
@@ -201,7 +233,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'read');
 
-        $job      = PrintJob::query()->findOrFail($job);
+        $job      = $this->findScopedJob($job);
         $client   = $job->client_id ? Client::query()->find($job->client_id) : null;
         $settings = $this->bmsSettings();
 
@@ -225,7 +257,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'update');
 
-        $job = PrintJob::query()->findOrFail($id);
+        $job = $this->findScopedJob($id);
 
         return view('jobs.form', [
             'job' => $job,
@@ -239,7 +271,7 @@ class JobController extends BmsController
     {
         $this->authorizeBms('jobs', 'update');
 
-        $job = PrintJob::query()->findOrFail($id);
+        $job = $this->findScopedJob($id);
 
         $data = $request->validate([
             'client_id' => $this->scopedClientIdRules(),
@@ -272,6 +304,10 @@ class JobController extends BmsController
                 ? (float) ($data['amount'] ?? $job->amount)
                 : 0;
             unset($data['paid']);
+        }
+
+        if (array_key_exists('amount', $data)) {
+            $data['amount'] = $data['amount'] ?? 0;
         }
 
         if (isset($data['amount_paid'])) {
@@ -317,7 +353,7 @@ class JobController extends BmsController
             return back()->with('error', 'Admin users can delete jobs without a code.');
         }
 
-        PrintJob::query()->findOrFail($id);
+        $this->findScopedJob($id);
         JobDeleteOtpService::request($id, $user);
 
         return back()->with('success', 'Delete request sent to admin. You will receive a notification with your delete code once approved.');
@@ -333,7 +369,7 @@ class JobController extends BmsController
             'requester_id' => 'required|integer|exists:users,id',
         ]);
 
-        PrintJob::query()->findOrFail($id);
+        $this->findScopedJob($id);
         JobDeleteOtpService::approve($id, (int) $data['requester_id'], Auth::user());
 
         return back()->with('success', 'Delete code sent to the requester via notifications.');
@@ -354,7 +390,7 @@ class JobController extends BmsController
             }
         }
 
-        PrintJob::query()->findOrFail($id)->delete();
+        $this->findScopedJob($id)->delete();
 
         return redirect()->route('bms.jobs.index')->with('success', 'Job deleted.');
     }

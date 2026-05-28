@@ -9,7 +9,12 @@ use App\Support\BmsNavigation;
 use App\Support\BmsSettingsDefaults;
 use App\Models\Client;
 use App\Models\InventoryItem;
+use App\Models\Lead;
+use App\Models\PrintJob;
+use App\Models\Quote;
+use App\Models\SalesLog;
 use App\Models\Staff;
+use App\Support\BranchScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -37,26 +42,83 @@ abstract class BmsController extends Controller
         return $this->settings->all();
     }
 
+    protected function canViewAllBranches(): bool
+    {
+        return BranchScope::canViewAllBranches(Auth::user());
+    }
+
+    protected function userBranch(): ?string
+    {
+        return BranchScope::userBranch(Auth::user());
+    }
+
     protected function branchFilter(): ?string
     {
-        $user = Auth::user();
-        if (! $user || ! $user->branch || $user->branch === 'all') {
-            $branch = session('bms_branch', 'all');
+        return BranchScope::filter(Auth::user());
+    }
 
-            return $branch === 'all' ? null : $branch;
-        }
-
-        return $user->branch;
+    protected function visibleBranchNames(): array
+    {
+        return BranchScope::visibleBranchNames($this->branchNames(), Auth::user());
     }
 
     protected function scopeBranch(Builder $query, string $column = 'branch'): Builder
     {
-        $branch = $this->branchFilter();
-        if ($branch) {
+        if (! $this->canViewAllBranches()) {
+            $branch = $this->userBranch();
+            if (! $branch) {
+                return $query->whereRaw('1 = 0');
+            }
+
+            return $query->where($column, $branch);
+        }
+
+        $branch = session('bms_branch', 'all');
+        if ($branch !== 'all') {
             $query->where($column, $branch);
         }
 
         return $query;
+    }
+
+    protected function scopedJobsQuery(): Builder
+    {
+        return $this->scopeBranch(PrintJob::query());
+    }
+
+    protected function findScopedJob(string $id): PrintJob
+    {
+        return $this->scopedJobsQuery()->findOrFail($id);
+    }
+
+    protected function scopedSalesLogsQuery(): Builder
+    {
+        return $this->scopeBranch(SalesLog::query());
+    }
+
+    protected function findScopedSalesLog(int $id): SalesLog
+    {
+        return $this->scopedSalesLogsQuery()->findOrFail($id);
+    }
+
+    protected function scopedLeadsQuery(): Builder
+    {
+        return $this->scopeBranch(Lead::query());
+    }
+
+    protected function findScopedLead(int $id): Lead
+    {
+        return $this->scopedLeadsQuery()->findOrFail($id);
+    }
+
+    protected function scopedQuotesQuery(): Builder
+    {
+        return $this->scopeBranch(Quote::query());
+    }
+
+    protected function findScopedQuote(int $id): Quote
+    {
+        return $this->scopedQuotesQuery()->findOrFail($id);
     }
 
     protected function scopedClientsQuery(): Builder
@@ -129,6 +191,39 @@ abstract class BmsController extends Controller
         ];
     }
 
+    /** @return list<mixed> */
+    protected function requiredScopedClientIdRules(): array
+    {
+        return [
+            'required',
+            'integer',
+            function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! $this->scopedClientsQuery()->where('id', $value)->exists()) {
+                    $fail('The selected client is not available for your branch.');
+                }
+            },
+        ];
+    }
+
+    protected function createInlineClient(Request $request, string $branch): Client
+    {
+        $data = $request->validate([
+            'new_client_name' => 'required|string|max:120',
+            'new_client_phone' => 'nullable|string|max:40',
+            'new_client_email' => 'nullable|email|max:120',
+            'new_client_company' => 'nullable|string|max:120',
+        ]);
+
+        return Client::query()->create([
+            'id' => $this->nextNumericId(Client::class),
+            'name' => $data['new_client_name'],
+            'phone' => $data['new_client_phone'] ?? null,
+            'email' => $data['new_client_email'] ?? null,
+            'company' => $data['new_client_company'] ?? null,
+            'branch' => $branch,
+        ]);
+    }
+
     protected function isSafeInternalUrl(?string $url): bool
     {
         if (! $url) {
@@ -183,17 +278,12 @@ abstract class BmsController extends Controller
         }
 
         if (! BmsNavigation::hasCap($user, 'allBranches')) {
-            $branch = $user->branch;
-            if ($branch && $branch !== 'all' && in_array($branch, $all, true)) {
+            $branch = $this->userBranch();
+            if ($branch && in_array($branch, $all, true)) {
                 return [$branch];
             }
 
-            $filtered = $this->branchFilter();
-            if ($filtered && in_array($filtered, $all, true)) {
-                return [$filtered];
-            }
-
-            return $all;
+            return [];
         }
 
         $pipeline = session('bms_branch', 'all');

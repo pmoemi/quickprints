@@ -44,7 +44,7 @@ class LeadController extends BmsController
         $this->authorizeBms('leads', 'update');
 
         return view('leads.form', [
-            'lead' => Lead::query()->findOrFail($id),
+            'lead' => $this->findScopedLead($id),
             'branches' => $this->branchNames(),
             'staff' => Staff::query()->where('active', true)->orderBy('name')->get(),
         ]);
@@ -53,7 +53,7 @@ class LeadController extends BmsController
     public function update(Request $request, int $id): RedirectResponse
     {
         $this->authorizeBms('leads', 'update');
-        Lead::query()->findOrFail($id)->update($this->validated($request));
+        $this->findScopedLead($id)->update($this->validated($request));
 
         return redirect()->route('bms.leads.index')->with('success', 'Lead updated.');
     }
@@ -61,7 +61,7 @@ class LeadController extends BmsController
     public function destroy(int $id): RedirectResponse
     {
         $this->authorizeBms('leads', 'delete');
-        Lead::query()->findOrFail($id)->delete();
+        $this->findScopedLead($id)->delete();
 
         return redirect()->route('bms.leads.index')->with('success', 'Lead deleted.');
     }

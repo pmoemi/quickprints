@@ -20,7 +20,9 @@
     @if($errors->hasAny(['name','email','phone']))
       <div class="alert alert-danger" style="margin-bottom:16px;">
         <ul style="margin:0;padding-left:1.2rem;">
-          @foreach($errors->only(['name','email','phone']) as $e)<li>{{ $e }}</li>@endforeach
+          @foreach (['name', 'email', 'phone'] as $field)
+            @foreach ($errors->get($field) as $message)<li>{{ $message }}</li>@endforeach
+          @endforeach
         </ul>
       </div>
     @endif
@@ -91,7 +93,9 @@
     @if($errors->hasAny(['current_password','password']))
       <div class="alert alert-danger" style="margin-bottom:16px;">
         <ul style="margin:0;padding-left:1.2rem;">
-          @foreach($errors->only(['current_password','password']) as $e)<li>{{ $e }}</li>@endforeach
+          @foreach (['current_password', 'password'] as $field)
+            @foreach ($errors->get($field) as $message)<li>{{ $message }}</li>@endforeach
+          @endforeach
         </ul>
       </div>
     @endif

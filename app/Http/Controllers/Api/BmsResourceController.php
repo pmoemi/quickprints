@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\JobDeleteOtpService;
-use App\Support\BmsNavigation;
+use App\Support\BranchScope;
 use App\Support\BmsPermissions;
 use App\Support\BmsResourceRegistry;
 use App\Models\User;
@@ -107,17 +107,7 @@ class BmsResourceController extends Controller
 
     private function branchFilterFor(?User $user): ?string
     {
-        if (! $user || ! $user->branch || $user->branch === 'all') {
-            if ($user && ! BmsNavigation::hasCap($user, 'allBranches')) {
-                return ($user->branch && $user->branch !== 'all') ? $user->branch : null;
-            }
-
-            $branch = session('bms_branch', 'all');
-
-            return $branch === 'all' ? null : $branch;
-        }
-
-        return $user->branch;
+        return BranchScope::filter($user);
     }
 
     private function authorizeResource(Request $request, string $resource, string $action): void

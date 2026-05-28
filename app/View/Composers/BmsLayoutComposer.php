@@ -4,7 +4,7 @@ namespace App\View\Composers;
 
 use App\Models\ServiceItem;
 use App\Services\BmsSettingsService;
-use App\Support\BmsNavigation;
+use App\Support\BranchScope;
 use App\Support\BmsPermissions;
 use App\Support\BrandColors;
 use Illuminate\Support\Facades\Auth;
@@ -45,7 +45,7 @@ class BmsLayoutComposer
             'bmsBrand' => BrandColors::fromSettings($settings),
             'bmsNav' => BmsNavigation::navForUser($user),
             'bmsBranches' => $settings['branches'] ?? [],
-            'bmsBranch' => session('bms_branch', $user?->branch === 'all' ? 'all' : ($user?->branch ?? 'all')),
+            'bmsBranch' => BranchScope::displayBranch($user),
             'bmsCanAllBranches' => BmsNavigation::hasCap($user, 'allBranches'),
             'bmsPermissions' => BmsPermissions::forRole($role),
             'bmsCurrency' => $settings['currency_symbol'] ?? 'KSh',
