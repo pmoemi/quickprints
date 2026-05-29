@@ -28,7 +28,9 @@ class StaffController extends BmsController
         $query = Staff::query()->orderBy('name');
 
         if ($branch !== 'all') {
-            $query->where('branch', $branch);
+            $query->where(function ($sq) use ($branch) {
+                $sq->where('branch', $branch)->orWhere('branch', 'all');
+            });
         }
         if ($q !== '') {
             $query->where(function ($sq) use ($q) {
@@ -41,10 +43,17 @@ class StaffController extends BmsController
         $staff = $query->get();
 
         // Also include Admin users who have no linked staff record
-        $linkedUserIds = $staff->pluck('user_id')->filter()->values();
+        $linkedUserIds = Staff::query()->whereNotNull('user_id')->pluck('user_id');
         $adminUsers = User::query()
             ->where('role', 'Admin')
             ->whereNotIn('id', $linkedUserIds)
+            ->when($branch !== 'all', function ($query) use ($branch) {
+                $query->where(function ($sq) use ($branch) {
+                    $sq->where('branch', $branch)
+                        ->orWhere('branch', 'all')
+                        ->orWhereNull('branch');
+                });
+            })
             ->get()
             ->map(fn (User $u) => (object) [
                 'id'      => null,
