@@ -43,6 +43,7 @@
           <th>Description</th>
           <th>Category</th>
           <th>Branch</th>
+          <th>Logged By</th>
           <th>Amount</th>
           <th>Method</th>
           <th>Status</th>
@@ -58,6 +59,7 @@
             <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $log->job_desc }}</td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $log->category ?? '—' }}</span></td>
             <td><span style="font-size:12px;color:var(--text2);">{{ $log->branch }}</span></td>
+            <td><span style="font-size:12px;color:var(--text2);">{{ $log->salesRep?->name ?? $log->logged_by ?? '—' }}</span></td>
             <td><span class="mono">{{ $bmsCurrency }} {{ number_format($log->amount) }}</span></td>
             <td><span class="badge badge-gray">{{ $log->pay_method ?? '—' }}</span></td>
             <td>
@@ -79,7 +81,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="10">
+            <td colspan="11">
               <div class="empty-state"><div class="empty-icon">🧾</div><p>No sales entries yet</p></div>
             </td>
           </tr>

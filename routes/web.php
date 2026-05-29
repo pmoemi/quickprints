@@ -12,6 +12,7 @@ use App\Http\Controllers\Bms\BranchFilterController;
 use App\Http\Controllers\Bms\ClientController;
 use App\Http\Controllers\Bms\CommissionController;
 use App\Http\Controllers\Bms\DashboardController;
+use App\Http\Controllers\Bms\ImpersonationController;
 use App\Http\Controllers\Bms\InventoryController;
 use App\Http\Controllers\Bms\JobController;
 use App\Http\Controllers\Bms\KanbanController;
@@ -98,6 +99,8 @@ Route::name('bms.')->group(function () {
         Route::resource('staff', StaffController::class)->except(['show'])->middleware('bms.page:staff');
         Route::post('staff/{id}/reset-password', [StaffController::class, 'resetPassword'])->name('staff.reset-password')->middleware('bms.page:staff');
         Route::post('staff/user/{userId}/reset-password', [StaffController::class, 'resetPasswordByUser'])->name('staff.reset-password-user')->middleware('bms.page:staff');
+        Route::post('staff/user/{userId}/impersonate', [ImpersonationController::class, 'start'])->name('staff.impersonate')->middleware('bms.page:staff');
+        Route::post('impersonation/leave', [ImpersonationController::class, 'leave'])->name('impersonation.leave');
 
         Route::get('saleslog', [SalesLogController::class, 'index'])->name('saleslog.index')->middleware('bms.page:saleslog');
         Route::get('saleslog/create', [SalesLogController::class, 'create'])->name('saleslog.create')->middleware('bms.page:saleslog');

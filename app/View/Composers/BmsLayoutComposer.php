@@ -8,6 +8,7 @@ use App\Support\BranchScope;
 use App\Support\BmsNavigation;
 use App\Support\BmsPermissions;
 use App\Support\BrandColors;
+use App\Support\Impersonation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -52,6 +53,8 @@ class BmsLayoutComposer
             'bmsCurrency' => $settings['currency_symbol'] ?? 'KSh',
             'bmsPaymentMethods' => $settings['payment_methods'] ?? ['Mpesa', 'Cash', 'Bank Transfer', 'Cheque', 'Credit'],
             'bmsJobCategories' => $jobCategories,
+            'bmsImpersonating' => Impersonation::isActive(),
+            'bmsImpersonator' => Impersonation::impersonator(),
         ]);
     }
 }

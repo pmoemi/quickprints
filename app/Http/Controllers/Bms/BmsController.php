@@ -397,6 +397,16 @@ abstract class BmsController extends Controller
         return $query->get();
     }
 
+    protected function currentStaffId(): ?int
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return null;
+        }
+
+        return Staff::query()->where('user_id', $user->id)->value('id');
+    }
+
     /** @return list<mixed> */
     protected function designerIdRules(bool $required = false, ?string $branch = null): array
     {

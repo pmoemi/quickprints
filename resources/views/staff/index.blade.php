@@ -109,6 +109,13 @@
                         id="btn-pw-{{ $member->id ?? 'usr-'.$member->user_id }}"
                         title="Reset password for {{ $member->name }}">🔑</button>
               @endif
+              @if(auth()->user()?->role === 'Admin' && $member->user_id && $member->role !== 'Admin')
+                <form method="POST" action="{{ route('bms.staff.impersonate', $member->user_id) }}"
+                      onsubmit="return confirm('View the system as {{ addslashes($member->name) }}?')">
+                  @csrf
+                  <button type="submit" class="btn btn-secondary btn-sm" title="View as {{ $member->name }}">👤</button>
+                </form>
+              @endif
               @if(!$isUserOnly)
                 <form method="POST" action="{{ route('bms.staff.destroy', $member->id) }}"
                       onsubmit="return confirm('Delete {{ addslashes($member->name) }}?')">

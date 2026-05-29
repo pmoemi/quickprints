@@ -97,6 +97,7 @@ class BmsResourceRegistry
                 'pay_status' => 'nullable|string',
                 'pay_method' => 'nullable|string',
                 'logged_by' => 'nullable|string',
+                'sales_rep_id' => 'nullable|integer',
                 'job_id' => 'nullable|string',
             ],
             'quotes' => [

@@ -14,7 +14,11 @@ class SalesLogController extends BmsController
     public function index(): View
     {
         $this->authorizeBms('saleslog', 'read');
-        $logs = $this->scopeBranch(SalesLog::query())->orderByDesc('date')->orderByDesc('id')->get();
+        $logs = $this->scopeBranch(SalesLog::query())
+            ->with('salesRep')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get();
 
         return view('saleslog.index', compact('logs'));
     }
@@ -55,6 +59,7 @@ class SalesLogController extends BmsController
         $data['id'] = $this->nextNumericId(SalesLog::class);
         $data['job_id'] = $jobId;
         $data['logged_by'] = $request->user()->name;
+        $data['sales_rep_id'] = $this->currentStaffId();
         $payStatus = $data['pay_status'] ?? 'pending';
         $data['pay_status'] = $payStatus;
 
@@ -79,6 +84,7 @@ class SalesLogController extends BmsController
             'category' => $data['category'] ?? null,
             'stage' => 'designing',
             'designer_id' => $data['designer_id'],
+            'sales_rep_id' => $data['sales_rep_id'],
             'amount' => $amount,
             'amount_paid' => $amountPaid,
             'priority' => 'medium',

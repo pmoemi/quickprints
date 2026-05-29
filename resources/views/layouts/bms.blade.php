@@ -561,6 +561,15 @@ tr:last-child td{border-bottom:none;}
 </div>
 
 <div id="main">
+  @if($bmsImpersonating ?? false)
+    <div class="alert alert-warn" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <span>Viewing as <strong>{{ $bmsUser->name }}</strong> ({{ $bmsUser->role }})@if($bmsImpersonator) · signed in as {{ $bmsImpersonator->name }}@endif</span>
+      <form method="POST" action="{{ route('bms.impersonation.leave') }}" style="margin:0;">
+        @csrf
+        <button type="submit" class="btn btn-secondary btn-sm">Return to admin</button>
+      </form>
+    </div>
+  @endif
   @if(session('success'))
     <div class="alert alert-success" id="flash-msg">{{ session('success') }}</div>
   @endif

@@ -38,6 +38,13 @@ class BmsResourceController extends Controller
 
         $model = BmsResourceRegistry::model($resource);
         $data = $this->validatedPayload($request, $resource, false);
+        if ($resource === 'saleslog') {
+            $user = $request->user();
+            $data['logged_by'] = $user->name;
+            if (empty($data['sales_rep_id'])) {
+                $data['sales_rep_id'] = \App\Models\Staff::query()->where('user_id', $user->id)->value('id');
+            }
+        }
         $row = $model::query()->create($data);
 
         return response()->json($this->serialize($row), 201);

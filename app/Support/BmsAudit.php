@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class BmsAudit
@@ -14,6 +15,11 @@ class BmsAudit
             return;
         }
 
+        self::logAs($user, $action);
+    }
+
+    public static function logAs(User $user, string $action): void
+    {
         AuditLog::query()->create([
             'user_id' => $user->id,
             'user_name' => $user->name,
