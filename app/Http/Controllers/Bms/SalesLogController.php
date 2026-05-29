@@ -14,13 +14,14 @@ class SalesLogController extends BmsController
     public function index(): View
     {
         $this->authorizeBms('saleslog', 'read');
-        $logs = $this->scopeBranch(SalesLog::query())
+        $summaries = $this->salesLogSummaries();
+        $logs = $this->scopedSalesLogsQuery()
             ->with('salesRep')
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
 
-        return view('saleslog.index', compact('logs'));
+        return view('saleslog.index', compact('logs', 'summaries'));
     }
 
     public function create(): View

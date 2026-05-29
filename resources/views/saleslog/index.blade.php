@@ -1,16 +1,15 @@
 ﻿@extends('layouts.bms')
 
 @section('content')
-@php
-  $today = now()->toDateString();
-  $todayTotal = $logs->where('date', $today)->sum('amount');
-  $todayCount = $logs->where('date', $today)->count();
-@endphp
-
 <div class="page-header">
   <div>
     <div class="page-title">Daily Sales Log</div>
-    <div class="page-subtitle">{{ $logs->count() }} entries</div>
+    <div class="page-subtitle">
+      {{ $summaries['all_count'] }} entries
+      @if($bmsCanAllBranches && $bmsBranch !== 'all')
+        · {{ $bmsBranch }}
+      @endif
+    </div>
   </div>
   <a href="{{ route('bms.saleslog.create') }}" class="btn btn-primary">+ Log Sale</a>
 </div>
@@ -18,18 +17,18 @@
 <div class="grid-3" style="margin-bottom:20px;">
   <div class="stat-card">
     <div class="stat-label">Today's Total</div>
-    <div class="stat-value green">{{ $bmsCurrency }} {{ number_format($todayTotal) }}</div>
-    <div class="stat-sub">{{ $todayCount }} entries today</div>
+    <div class="stat-value green">{{ $bmsCurrency }} {{ number_format($summaries['today_total']) }}</div>
+    <div class="stat-sub">{{ $summaries['today_count'] }} entries today</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">All Time Total</div>
-    <div class="stat-value accent">{{ $bmsCurrency }} {{ number_format($logs->sum('amount')) }}</div>
-    <div class="stat-sub">{{ $logs->count() }} total entries</div>
+    <div class="stat-value accent">{{ $bmsCurrency }} {{ number_format($summaries['all_total']) }}</div>
+    <div class="stat-sub">{{ $summaries['all_count'] }} total entries</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Pending Payments</div>
-    <div class="stat-value red">{{ $bmsCurrency }} {{ number_format($logs->where('pay_status', 'pending')->sum('amount')) }}</div>
-    <div class="stat-sub">{{ $logs->where('pay_status', 'pending')->count() }} pending</div>
+    <div class="stat-value red">{{ $bmsCurrency }} {{ number_format($summaries['pending_total']) }}</div>
+    <div class="stat-sub">{{ $summaries['pending_count'] }} pending</div>
   </div>
 </div>
 

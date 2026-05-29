@@ -164,7 +164,7 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
   $totalRevenue = $jobs->where('paid', true)->sum('amount');
   $pendingRevenue = $jobs->where('paid', false)->sum('amount');
   $activeJobs = $jobs->whereNotIn('stage', ['installed','paid'])->count();
-  $todayEntries = $salesLog->where('date', $today)->count();
+  $todayEntries = $salesLog->filter(fn ($s) => optional($s->date)->toDateString() === $today)->count();
   $unpaidCount = $jobs->where('paid', false)->count();
   $stageCounts = collect($stages)->mapWithKeys(fn($s) => [$s => $jobs->where('stage', $s)->count()]);
   $totalJobs = max(1, $jobs->count());
