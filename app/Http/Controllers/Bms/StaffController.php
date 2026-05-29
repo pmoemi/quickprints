@@ -18,8 +18,9 @@ class StaffController extends BmsController
     {
         $this->authorizeBms('staff', 'read');
 
+        // Staff page lists every login account — branch filter applies only when chosen here (not global session).
         if ($this->canViewAllBranches()) {
-            $branch = request('branch', $this->branchFilter() ?? 'all');
+            $branch = request()->has('branch') ? (string) request('branch', 'all') : 'all';
         } else {
             $branch = $this->userBranch() ?? 'all';
         }
@@ -42,35 +43,36 @@ class StaffController extends BmsController
 
         $staff = $query->get();
 
-        // Also include Admin users who have no linked staff record
+        // Login accounts with no linked staff record (any role) — always shown so they can be linked.
         $linkedUserIds = Staff::query()->whereNotNull('user_id')->pluck('user_id');
-        $adminUsers = User::query()
-            ->where('role', 'Admin')
+        $unlinkedUsersQuery = User::query()
             ->whereNotIn('id', $linkedUserIds)
-            ->when($branch !== 'all', function ($query) use ($branch) {
-                $query->where(function ($sq) use ($branch) {
-                    $sq->where('branch', $branch)
-                        ->orWhere('branch', 'all')
-                        ->orWhereNull('branch');
-                });
-            })
-            ->get()
+            ->orderBy('name');
+
+        if ($q !== '') {
+            $unlinkedUsersQuery->where(function ($sq) use ($q) {
+                $sq->where('name', 'like', "%{$q}%")
+                   ->orWhere('email', 'like', "%{$q}%")
+                   ->orWhere('role', 'like', "%{$q}%");
+            });
+        }
+
+        $unlinkedUsers = $unlinkedUsersQuery->get()
             ->map(fn (User $u) => (object) [
-                'id'      => null,
-                'name'    => $u->name,
-                'email'   => $u->email,
-                'role'    => 'Admin',
-                'branch'  => $u->branch ?? 'all',
-                'salary'  => null,
-                'active'  => true,
-                'phone'   => null,
-                'color'   => '#b91c1c',
-                'user_id' => $u->id,
-                '_admin_only' => true, // flag — no staff record exists
+                'id'          => null,
+                'name'        => $u->name,
+                'email'       => $u->email,
+                'role'        => $u->role,
+                'branch'      => $u->branch ?? 'all',
+                'salary'      => null,
+                'active'      => true,
+                'phone'       => null,
+                'color'       => $u->role === 'Admin' ? '#b91c1c' : '#'.substr(md5($u->email ?? ''), 0, 6),
+                'user_id'     => $u->id,
+                '_user_only'  => true,
             ]);
 
-        // Merge admins at the top
-        $staff = $adminUsers->concat($staff);
+        $staff = $unlinkedUsers->concat($staff);
 
         $branches = array_merge(['all'], $this->branchNames());
 
@@ -82,7 +84,14 @@ class StaffController extends BmsController
         $this->authorizeBms('staff', 'create');
 
         return view('staff.form', [
-            'member' => new Staff(['active' => true, 'is_designer' => false]),
+            'member' => new Staff([
+                'active'      => true,
+                'is_designer' => false,
+                'name'        => request('name'),
+                'email'       => request('email'),
+                'role'        => request('role'),
+                'branch'      => request('branch', 'all'),
+            ]),
             'branches' => $this->branchNames(),
             'roles' => $this->roles(),
         ]);

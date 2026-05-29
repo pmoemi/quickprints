@@ -1,10 +1,20 @@
 ﻿@extends('layouts.bms')
 
 @section('content')
+@php
+  $unlinkedCount = $staff->filter(fn ($m) => ($m->_user_only ?? $m->_admin_only ?? false))->count();
+  $staffCount = $staff->count() - $unlinkedCount;
+@endphp
 <div class="page-header">
   <div>
     <div class="page-title">Staff</div>
-    <div class="page-subtitle">{{ $staff->count() }} member(s){{ $branch !== 'all' ? ' · '.$branch.' branch' : '' }}</div>
+    <div class="page-subtitle">
+      {{ $staffCount }} staff record(s)
+      @if($unlinkedCount > 0)
+        · {{ $unlinkedCount }} unlinked login account(s)
+      @endif
+      @if($branch !== 'all') · {{ $branch }} branch @endif
+    </div>
   </div>
   <a href="{{ route('bms.staff.create') }}" class="btn btn-primary">+ Add Staff</a>
 </div>
@@ -26,7 +36,8 @@
 
 @if($branch !== 'all')
   <div class="alert alert-warn" style="margin-bottom:16px;">
-    Showing staff for <strong>{{ $branch }}</strong> only. <a href="{{ route('bms.staff.index') }}">View all branches</a>
+    Staff records filtered to <strong>{{ $branch }}</strong> (plus company-wide). Unlinked login accounts are always shown.
+    <a href="{{ route('bms.staff.index', request()->only('q')) }}">View all branches</a>
   </div>
 @endif
 
@@ -46,9 +57,9 @@
     </thead>
     <tbody>
       @forelse($staff as $member)
-        @php $isAdminOnly = $member->_admin_only ?? false; @endphp
+        @php $isUserOnly = $member->_user_only ?? $member->_admin_only ?? false; @endphp
         {{-- Main row --}}
-        <tr id="row-{{ $member->id ?? 'adm-'.$member->user_id }}">
+        <tr id="row-{{ $member->id ?? 'usr-'.$member->user_id }}">
           <td style="padding:10px 14px;">
             <div style="display:flex;align-items:center;gap:10px;">
               <div class="avatar" style="background:{{ $member->color ? $member->color.'20' : 'var(--accent-dim)' }};color:{{ $member->color ?? 'var(--accent)' }};">
@@ -56,8 +67,8 @@
               </div>
               <div>
                 <div style="font-weight:600;font-size:13px;">{{ $member->name }}</div>
-                @if($isAdminOnly)
-                  <div style="font-size:10px;color:var(--text3);">System account · no staff record</div>
+                @if($isUserOnly)
+                  <div style="font-size:10px;color:var(--text3);">Login account · no staff record</div>
                 @else
                   <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">{{ $member->phone ?? '' }}</div>
                 @endif
@@ -65,8 +76,8 @@
             </div>
           </td>
           <td>
-            @if($isAdminOnly)
-              <span class="badge" style="background:rgba(185,28,28,.15);color:#dc2626;border:1px solid rgba(185,28,28,.3);">Admin</span>
+            @if($isUserOnly)
+              <span class="badge" style="{{ $member->role === 'Admin' ? 'background:rgba(185,28,28,.15);color:#dc2626;border:1px solid rgba(185,28,28,.3);' : 'background:rgba(234,179,8,.15);color:#ca8a04;border:1px solid rgba(234,179,8,.3);' }}">{{ $member->role }}</span>
             @else
               <span class="badge badge-blue">{{ $member->role }}</span>
               @if(!empty($member->is_designer))
@@ -77,21 +88,28 @@
           <td class="col-email" style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
           <td class="col-branch"><span style="font-size:12px;color:var(--text2);">{{ ($member->branch === 'all' || !$member->branch) ? 'All' : $member->branch }}</span></td>
           <td class="col-salary mono" style="font-size:12px;">
-            @if(!$isAdminOnly){{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}@else <span style="color:var(--text3);">—</span>@endif
+            @if(!$isUserOnly){{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}@else <span style="color:var(--text3);">—</span>@endif
           </td>
           <td><span class="badge badge-green">Active</span></td>
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
-              @if(!$isAdminOnly)
+              @if($isUserOnly)
+                <a href="{{ route('bms.staff.create', array_filter([
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'role' => $member->role,
+                    'branch' => ($member->branch && $member->branch !== 'all') ? $member->branch : null,
+                ])) }}" class="btn btn-primary btn-sm">Link staff</a>
+              @else
                 <a href="{{ route('bms.staff.edit', $member->id) }}" class="btn btn-secondary btn-sm">Edit</a>
               @endif
               @if(\App\Support\BmsPermissions::canResetStaffPasswords(auth()->user()?->role) && $member->user_id)
                 <button type="button" class="btn btn-secondary btn-sm"
-                        onclick="togglePwReset('{{ $member->id ?? 'adm-'.$member->user_id }}')"
-                        id="btn-pw-{{ $member->id ?? 'adm-'.$member->user_id }}"
+                        onclick="togglePwReset('{{ $member->id ?? 'usr-'.$member->user_id }}')"
+                        id="btn-pw-{{ $member->id ?? 'usr-'.$member->user_id }}"
                         title="Reset password for {{ $member->name }}">🔑</button>
               @endif
-              @if(!$isAdminOnly)
+              @if(!$isUserOnly)
                 <form method="POST" action="{{ route('bms.staff.destroy', $member->id) }}"
                       onsubmit="return confirm('Delete {{ addslashes($member->name) }}?')">
                   @csrf @method('DELETE')
@@ -104,12 +122,12 @@
 
         {{-- Inline password reset row (hidden by default) --}}
         @if(\App\Support\BmsPermissions::canResetStaffPasswords(auth()->user()?->role) && $member->user_id)
-          @php $pwRowKey = $member->id ?? 'adm-'.$member->user_id; @endphp
+          @php $pwRowKey = $member->id ?? 'usr-'.$member->user_id; @endphp
           <tr id="pw-row-{{ $pwRowKey }}" style="display:none;background:var(--bg3);">
             <td colspan="7" style="padding:12px 16px;">
-              {{-- Admin-only rows use a direct user password reset route --}}
+              {{-- Unlinked user rows use a direct user password reset route --}}
               <form method="POST"
-                    action="{{ $isAdminOnly
+                    action="{{ $isUserOnly
                         ? route('bms.staff.reset-password-user', $member->user_id)
                         : route('bms.staff.reset-password', $member->id) }}"
                     style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
