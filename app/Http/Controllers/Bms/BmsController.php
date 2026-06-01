@@ -96,18 +96,20 @@ abstract class BmsController extends Controller
         return $this->scopeBranch(SalesLog::query());
     }
 
-    /** @return array{today_total: float, today_count: int, all_total: float, all_count: int, pending_total: float, pending_count: int} */
+    /** @return array<string, float|int> */
     protected function salesLogSummaries(?string $today = null): array
     {
         $today ??= now()->toDateString();
 
         return [
-            'today_total' => (float) $this->scopedSalesLogsQuery()->whereDate('date', $today)->sum('amount'),
-            'today_count' => (int) $this->scopedSalesLogsQuery()->whereDate('date', $today)->count(),
-            'all_total' => (float) $this->scopedSalesLogsQuery()->sum('amount'),
-            'all_count' => (int) $this->scopedSalesLogsQuery()->count(),
-            'pending_total' => (float) $this->scopedSalesLogsQuery()->where('pay_status', 'pending')->sum('amount'),
-            'pending_count' => (int) $this->scopedSalesLogsQuery()->where('pay_status', 'pending')->count(),
+            'today_total'   => (float) $this->scopedSalesLogsQuery()->whereDate('date', $today)->sum('amount'),
+            'today_count'   => (int)   $this->scopedSalesLogsQuery()->whereDate('date', $today)->count(),
+            'today_cash'    => (float) $this->scopedSalesLogsQuery()->whereDate('date', $today)->sum('cash_amount'),
+            'today_mpesa'   => (float) $this->scopedSalesLogsQuery()->whereDate('date', $today)->sum('mpesa_amount'),
+            'all_total'     => (float) $this->scopedSalesLogsQuery()->sum('amount'),
+            'all_count'     => (int)   $this->scopedSalesLogsQuery()->count(),
+            'pending_total' => (float) $this->scopedSalesLogsQuery()->whereIn('pay_status', ['pending', 'partial'])->sum('amount'),
+            'pending_count' => (int)   $this->scopedSalesLogsQuery()->whereIn('pay_status', ['pending', 'partial'])->count(),
         ];
     }
 

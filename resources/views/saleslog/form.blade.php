@@ -1,4 +1,4 @@
-﻿@extends('layouts.bms')
+@extends('layouts.bms')
 
 @section('content')
 <div class="page-header">
@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <div class="form-row cols-3">
+    <div class="form-row cols-2">
       <div class="fld">
         <label>Category</label>
         <select name="category">
@@ -65,36 +65,55 @@
         <label>Amount ({{ $bmsCurrency }}) <span style="color:var(--red)">*</span></label>
         <input type="number" name="amount" value="{{ old('amount', $log->amount) }}" required min="0" step="0.01" placeholder="0">
       </div>
-      <div class="fld">
-        <label>Payment Method</label>
-        <select name="pay_method">
-          @foreach($bmsPaymentMethods as $m)
-            <option value="{{ $m }}" {{ old('pay_method', $log->pay_method) === $m ? 'selected' : '' }}>{{ $m }}</option>
-          @endforeach
-        </select>
-      </div>
     </div>
 
-    <div class="form-row cols-2">
-      <div class="fld">
-        <label>Payment Status</label>
-        <select name="pay_status" id="pay-status-select">
-          <option value="pending" {{ old('pay_status', $log->pay_status ?? 'pending') === 'pending' ? 'selected' : '' }}>Pending</option>
-          <option value="partial" {{ old('pay_status', $log->pay_status ?? '') === 'partial' ? 'selected' : '' }}>Partially paid</option>
-          <option value="paid" {{ old('pay_status', $log->pay_status ?? '') === 'paid' ? 'selected' : '' }}>Fully paid</option>
-        </select>
+    {{-- Payment Section --}}
+    <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;background:var(--bg3);">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:12px;">Payment Received</div>
+
+      <div class="form-row cols-2" style="margin-bottom:0;">
+        <div class="fld" style="margin-bottom:10px;">
+          <label>Cash ({{ $bmsCurrency }})</label>
+          <input type="number" name="cash_amount" id="cash-inp"
+                 value="{{ old('cash_amount', 0) }}" min="0" step="0.01" placeholder="0"
+                 oninput="syncPayMode()">
+        </div>
+        <div class="fld" style="margin-bottom:10px;">
+          <label>M-Pesa ({{ $bmsCurrency }})</label>
+          <input type="number" name="mpesa_amount" id="mpesa-inp"
+                 value="{{ old('mpesa_amount', 0) }}" min="0" step="0.01" placeholder="0"
+                 oninput="syncPayMode()">
+        </div>
       </div>
-      <div class="fld" id="amount-paid-field" style="{{ old('pay_status', $log->pay_status ?? 'pending') === 'partial' ? '' : 'display:none;' }}">
-        <label>Amount Paid ({{ $bmsCurrency }})</label>
-        <input type="number" name="amount_paid" value="{{ old('amount_paid') }}" min="0" step="0.01" placeholder="Deposit / partial payment">
+
+      {{-- Auto-computed status indicator --}}
+      <div id="pay-auto-info" style="font-size:12px;color:var(--text2);margin-bottom:10px;display:none;">
+        Method: <strong id="pay-method-label">—</strong> · Status: <strong id="pay-status-label">—</strong>
+      </div>
+
+      {{-- Fallback: other payment methods (shown only when no cash/mpesa entered) --}}
+      <div id="pay-other-section" class="form-row cols-2" style="margin-bottom:0;margin-top:4px;">
+        <div class="fld" style="margin-bottom:0;">
+          <label>Other Method <span style="font-size:10px;color:var(--text3);">(Bank Transfer, Cheque…)</span></label>
+          <select name="pay_method">
+            <option value="">— None / Pending —</option>
+            @foreach($bmsPaymentMethods as $m)
+              @if(!in_array($m, ['Cash', 'Mpesa', 'M-Pesa']))
+                <option value="{{ $m }}" {{ old('pay_method', $log->pay_method ?? '') === $m ? 'selected' : '' }}>{{ $m }}</option>
+              @endif
+            @endforeach
+          </select>
+        </div>
+        <div class="fld" style="margin-bottom:0;">
+          <label>Payment Status</label>
+          <select name="pay_status" id="pay-status-select">
+            <option value="pending" {{ old('pay_status', 'pending') === 'pending' ? 'selected' : '' }}>Pending</option>
+            <option value="partial" {{ old('pay_status', '') === 'partial' ? 'selected' : '' }}>Partially paid</option>
+            <option value="paid"    {{ old('pay_status', '') === 'paid' ? 'selected' : '' }}>Fully paid</option>
+          </select>
+        </div>
       </div>
     </div>
-    <script>
-      document.getElementById('pay-status-select')?.addEventListener('change', function () {
-        var field = document.getElementById('amount-paid-field');
-        if (field) field.style.display = this.value === 'partial' ? '' : 'none';
-      });
-    </script>
 
     <div class="form-row cols-2">
       <div class="fld">
@@ -110,7 +129,7 @@
       <div class="fld">
         <label>&nbsp;</label>
         <div style="padding:10px 12px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text2);margin-top:2px;">
-          Job will appear on the designer board and notify the assigned designer.
+          A job will be auto-created and assigned to the designer.
         </div>
       </div>
     </div>
@@ -122,14 +141,36 @@
       </div>
     </div>
 
-    <div class="alert alert-info" style="margin-bottom:16px;">
-      A job will be auto-created from this sale entry.
-    </div>
-
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <a href="{{ route('bms.saleslog.index') }}" class="btn btn-secondary">Cancel</a>
       <button type="submit" class="btn btn-primary">Log Sale & Create Job</button>
     </div>
   </form>
 </div>
+
+@push('scripts')
+<script>
+function syncPayMode() {
+  const cash  = parseFloat(document.getElementById('cash-inp').value) || 0;
+  const mpesa = parseFloat(document.getElementById('mpesa-inp').value) || 0;
+  const total = cash + mpesa;
+  const other = document.getElementById('pay-other-section');
+  const info  = document.getElementById('pay-auto-info');
+
+  if (total > 0) {
+    other.style.display = 'none';
+    info.style.display  = 'block';
+    const amount = parseFloat(document.querySelector('[name=amount]').value) || 0;
+    const method = cash > 0 && mpesa > 0 ? 'Mixed (Cash + M-Pesa)' : (cash > 0 ? 'Cash' : 'M-Pesa');
+    const status = total >= amount && amount > 0 ? 'Fully paid' : (total > 0 ? 'Partially paid' : 'Pending');
+    document.getElementById('pay-method-label').textContent = method;
+    document.getElementById('pay-status-label').textContent = status;
+  } else {
+    other.style.display = '';
+    info.style.display  = 'none';
+  }
+}
+syncPayMode();
+</script>
+@endpush
 @endsection

@@ -105,6 +105,8 @@ Route::name('bms.')->group(function () {
         Route::get('saleslog', [SalesLogController::class, 'index'])->name('saleslog.index')->middleware('bms.page:saleslog');
         Route::get('saleslog/create', [SalesLogController::class, 'create'])->name('saleslog.create')->middleware('bms.page:saleslog');
         Route::post('saleslog', [SalesLogController::class, 'store'])->name('saleslog.store')->middleware('bms.page:saleslog');
+        Route::get('saleslog/{id}/payment', [SalesLogController::class, 'editPayment'])->name('saleslog.edit-payment')->middleware('bms.page:saleslog');
+        Route::patch('saleslog/{id}/payment', [SalesLogController::class, 'updatePayment'])->name('saleslog.update-payment')->middleware('bms.page:saleslog');
         Route::delete('saleslog/{id}', [SalesLogController::class, 'destroy'])->name('saleslog.destroy')->middleware('bms.page:saleslog');
 
         Route::resource('opex', OpexController::class)->only(['index', 'create', 'store', 'destroy'])->middleware('bms.page:opex');
