@@ -9,6 +9,7 @@ use App\Support\BmsPermissions;
 use App\Support\BmsSettingsDefaults;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -18,7 +19,7 @@ class StaffController extends BmsController
     {
         $this->authorizeBms('staff', 'read');
 
-        // Staff page lists every login account — branch filter applies only when chosen here (not global session).
+        // Branch filter is local to this page (not the global session branch).
         if ($this->canViewAllBranches()) {
             $branch = request()->has('branch') ? (string) request('branch', 'all') : 'all';
         } else {
@@ -42,37 +43,6 @@ class StaffController extends BmsController
         }
 
         $staff = $query->get();
-
-        // Login accounts with no linked staff record (any role) — always shown so they can be linked.
-        $linkedUserIds = Staff::query()->whereNotNull('user_id')->pluck('user_id');
-        $unlinkedUsersQuery = User::query()
-            ->whereNotIn('id', $linkedUserIds)
-            ->orderBy('name');
-
-        if ($q !== '') {
-            $unlinkedUsersQuery->where(function ($sq) use ($q) {
-                $sq->where('name', 'like', "%{$q}%")
-                   ->orWhere('email', 'like', "%{$q}%")
-                   ->orWhere('role', 'like', "%{$q}%");
-            });
-        }
-
-        $unlinkedUsers = $unlinkedUsersQuery->get()
-            ->map(fn (User $u) => (object) [
-                'id'          => null,
-                'name'        => $u->name,
-                'email'       => $u->email,
-                'role'        => $u->role,
-                'branch'      => $u->branch ?? 'all',
-                'salary'      => null,
-                'active'      => true,
-                'phone'       => null,
-                'color'       => $u->role === 'Admin' ? '#b91c1c' : '#'.substr(md5($u->email ?? ''), 0, 6),
-                'user_id'     => $u->id,
-                '_user_only'  => true,
-            ]);
-
-        $staff = $unlinkedUsers->concat($staff);
 
         $branches = array_merge(['all'], $this->branchNames());
 
@@ -270,12 +240,29 @@ class StaffController extends BmsController
         return back()->with('success', "Password for {$user->name} has been reset.");
     }
 
-    public function destroy(int $id): RedirectResponse
+    public function destroy(Request $request, int $id): RedirectResponse
     {
         $this->authorizeBms('staff', 'delete');
-        Staff::query()->findOrFail($id)->delete();
 
-        return redirect()->route('bms.staff.index')->with('success', 'Staff removed.');
+        $staff = Staff::query()->findOrFail($id);
+        $transferToId = $request->input('transfer_to_id') ? (int) $request->input('transfer_to_id') : null;
+
+        if ($transferToId) {
+            Staff::query()->findOrFail($transferToId);
+
+            DB::table('sales_logs')->where('sales_rep_id', $id)->update(['sales_rep_id' => $transferToId]);
+            DB::table('sales_logs')->where('designer_id', $id)->update(['designer_id' => $transferToId]);
+            DB::table('print_jobs')->where('sales_rep_id', $id)->update(['sales_rep_id' => $transferToId]);
+            DB::table('print_jobs')->where('designer_id', $id)->update(['designer_id' => $transferToId]);
+            DB::table('attendance_records')->where('staff_id', $id)->update(['staff_id' => $transferToId]);
+            DB::table('leave_requests')->where('staff_id', $id)->update(['staff_id' => $transferToId]);
+            DB::table('payroll_entries')->where('staff_id', $id)->update(['staff_id' => $transferToId]);
+        }
+
+        $staff->delete();
+
+        return redirect()->route('bms.staff.index')
+            ->with('success', $transferToId ? 'Staff removed and records transferred.' : 'Staff removed.');
     }
 
     /** @return list<string> */

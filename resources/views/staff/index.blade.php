@@ -1,18 +1,11 @@
-﻿@extends('layouts.bms')
+@extends('layouts.bms')
 
 @section('content')
-@php
-  $unlinkedCount = $staff->filter(fn ($m) => ($m->_user_only ?? $m->_admin_only ?? false))->count();
-  $staffCount = $staff->count() - $unlinkedCount;
-@endphp
 <div class="page-header">
   <div>
     <div class="page-title">Staff</div>
     <div class="page-subtitle">
-      {{ $staffCount }} staff record(s)
-      @if($unlinkedCount > 0)
-        · {{ $unlinkedCount }} unlinked login account(s)
-      @endif
+      {{ $staff->count() }} staff record(s)
       @if($branch !== 'all') · {{ $branch }} branch @endif
     </div>
   </div>
@@ -36,7 +29,7 @@
 
 @if($branch !== 'all')
   <div class="alert alert-warn" style="margin-bottom:16px;">
-    Staff records filtered to <strong>{{ $branch }}</strong> (plus company-wide). Unlinked login accounts are always shown.
+    Staff records filtered to <strong>{{ $branch }}</strong> (plus company-wide).
     <a href="{{ route('bms.staff.index', request()->only('q')) }}">View all branches</a>
   </div>
 @endif
@@ -57,9 +50,7 @@
     </thead>
     <tbody>
       @forelse($staff as $member)
-        @php $isUserOnly = $member->_user_only ?? $member->_admin_only ?? false; @endphp
-        {{-- Main row --}}
-        <tr id="row-{{ $member->id ?? 'usr-'.$member->user_id }}">
+        <tr id="row-{{ $member->id }}">
           <td style="padding:10px 14px;">
             <div style="display:flex;align-items:center;gap:10px;">
               <div class="avatar" style="background:{{ $member->color ? $member->color.'20' : 'var(--accent-dim)' }};color:{{ $member->color ?? 'var(--accent)' }};">
@@ -67,46 +58,32 @@
               </div>
               <div>
                 <div style="font-weight:600;font-size:13px;">{{ $member->name }}</div>
-                @if($isUserOnly)
-                  <div style="font-size:10px;color:var(--text3);">Login account · no staff record</div>
-                @else
-                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">{{ $member->phone ?? '' }}</div>
-                @endif
+                <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">{{ $member->phone ?? '' }}</div>
               </div>
             </div>
           </td>
           <td>
-            @if($isUserOnly)
-              <span class="badge" style="{{ $member->role === 'Admin' ? 'background:rgba(185,28,28,.15);color:#dc2626;border:1px solid rgba(185,28,28,.3);' : 'background:rgba(234,179,8,.15);color:#ca8a04;border:1px solid rgba(234,179,8,.3);' }}">{{ $member->role }}</span>
-            @else
-              <span class="badge badge-blue">{{ $member->role }}</span>
-              @if(!empty($member->is_designer))
-                <span class="badge" style="margin-left:4px;background:rgba(234,179,8,.15);color:#ca8a04;border:1px solid rgba(234,179,8,.3);">Designer</span>
-              @endif
+            <span class="badge badge-blue">{{ $member->role }}</span>
+            @if(!empty($member->is_designer))
+              <span class="badge" style="margin-left:4px;background:rgba(234,179,8,.15);color:#ca8a04;border:1px solid rgba(234,179,8,.3);">Designer</span>
             @endif
           </td>
           <td class="col-email" style="font-size:12px;color:var(--text2);">{{ $member->email ?? '—' }}</td>
           <td class="col-branch"><span style="font-size:12px;color:var(--text2);">{{ ($member->branch === 'all' || !$member->branch) ? 'All' : $member->branch }}</span></td>
-          <td class="col-salary mono" style="font-size:12px;">
-            @if(!$isUserOnly){{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}@else <span style="color:var(--text3);">—</span>@endif
+          <td class="col-salary mono" style="font-size:12px;">{{ $bmsCurrency }} {{ number_format($member->salary ?? 0) }}</td>
+          <td>
+            <span class="badge {{ $member->active ? 'badge-green' : '' }}"
+                  style="{{ !$member->active ? 'background:rgba(107,114,128,.15);color:#6b7280;border:1px solid rgba(107,114,128,.3);' : '' }}">
+              {{ $member->active ? 'Active' : 'Inactive' }}
+            </span>
           </td>
-          <td><span class="badge badge-green">Active</span></td>
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
-              @if($isUserOnly)
-                <a href="{{ route('bms.staff.create', array_filter([
-                    'name' => $member->name,
-                    'email' => $member->email,
-                    'role' => $member->role,
-                    'branch' => ($member->branch && $member->branch !== 'all') ? $member->branch : null,
-                ])) }}" class="btn btn-primary btn-sm">Link staff</a>
-              @else
-                <a href="{{ route('bms.staff.edit', $member->id) }}" class="btn btn-secondary btn-sm">Edit</a>
-              @endif
+              <a href="{{ route('bms.staff.edit', $member->id) }}" class="btn btn-secondary btn-sm">Edit</a>
               @if(\App\Support\BmsPermissions::canResetStaffPasswords(auth()->user()?->role) && $member->user_id)
                 <button type="button" class="btn btn-secondary btn-sm"
-                        onclick="togglePwReset('{{ $member->id ?? 'usr-'.$member->user_id }}')"
-                        id="btn-pw-{{ $member->id ?? 'usr-'.$member->user_id }}"
+                        onclick="togglePwReset({{ $member->id }})"
+                        id="btn-pw-{{ $member->id }}"
                         title="Reset password for {{ $member->name }}">🔑</button>
               @endif
               @if(auth()->user()?->role === 'Admin' && $member->user_id && $member->role !== 'Admin')
@@ -116,27 +93,17 @@
                   <button type="submit" class="btn btn-secondary btn-sm" title="View as {{ $member->name }}">👤</button>
                 </form>
               @endif
-              @if(!$isUserOnly)
-                <form method="POST" action="{{ route('bms.staff.destroy', $member->id) }}"
-                      onsubmit="return confirm('Delete {{ addslashes($member->name) }}?')">
-                  @csrf @method('DELETE')
-                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-              @endif
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="openDelModal({{ $member->id }}, '{{ addslashes($member->name) }}')">Delete</button>
             </div>
           </td>
         </tr>
 
         {{-- Inline password reset row (hidden by default) --}}
         @if(\App\Support\BmsPermissions::canResetStaffPasswords(auth()->user()?->role) && $member->user_id)
-          @php $pwRowKey = $member->id ?? 'usr-'.$member->user_id; @endphp
-          <tr id="pw-row-{{ $pwRowKey }}" style="display:none;background:var(--bg3);">
+          <tr id="pw-row-{{ $member->id }}" style="display:none;background:var(--bg3);">
             <td colspan="7" style="padding:12px 16px;">
-              {{-- Unlinked user rows use a direct user password reset route --}}
-              <form method="POST"
-                    action="{{ $isUserOnly
-                        ? route('bms.staff.reset-password-user', $member->user_id)
-                        : route('bms.staff.reset-password', $member->id) }}"
+              <form method="POST" action="{{ route('bms.staff.reset-password', $member->id) }}"
                     style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
                 @csrf
                 <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
@@ -149,11 +116,11 @@
                 <div style="flex:1;min-width:160px;max-width:220px;">
                   <label style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;">New Password</label>
                   <div style="position:relative;">
-                    <input type="password" name="new_password" id="pw-inp-{{ $pwRowKey }}"
+                    <input type="password" name="new_password" id="pw-inp-{{ $member->id }}"
                            class="fld" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 32px 7px 10px;color:var(--text);font-size:13px;"
                            minlength="8" placeholder="Min 8 chars" autocomplete="new-password">
                     <button type="button" tabindex="-1"
-                            onclick="togglePwVis('pw-inp-{{ $pwRowKey }}',this)"
+                            onclick="togglePwVis('pw-inp-{{ $member->id }}',this)"
                             style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;">👁</button>
                   </div>
                 </div>
@@ -166,7 +133,7 @@
                 <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:1px;">
                   <button type="submit" class="btn btn-primary btn-sm">Save Password</button>
                   <button type="button" class="btn btn-secondary btn-sm"
-                          onclick="togglePwReset('{{ $pwRowKey }}')">Cancel</button>
+                          onclick="togglePwReset({{ $member->id }})">Cancel</button>
                 </div>
               </form>
             </td>
@@ -177,7 +144,36 @@
       @endforelse
     </tbody>
   </table>
-  </div>{{-- /scroll wrapper --}}
+  </div>
+</div>
+
+{{-- Delete + Transfer Modal --}}
+<div id="del-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:24px;width:100%;max-width:440px;margin:16px;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Delete Staff Member</div>
+    <p style="font-size:13px;color:var(--text2);margin:0 0 16px;">
+      You are deleting <strong id="dm-name"></strong>.
+      Select a staff member to receive their records before deletion.
+    </p>
+    <form method="POST" id="dm-form">
+      @csrf
+      @method('DELETE')
+      <div style="margin-bottom:20px;">
+        <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);display:block;margin-bottom:6px;">Transfer records to</label>
+        <select name="transfer_to_id" id="dm-select"
+                style="width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius,4px);color:var(--text);font-size:13px;">
+          <option value="">— No transfer (clear references) —</option>
+        </select>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px;">
+          Sales logs, print jobs, attendance, leave, and payroll records will be reassigned to the selected staff.
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeDelModal()">Cancel</button>
+        <button type="submit" class="btn btn-danger">Delete Staff</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <style>
@@ -191,6 +187,32 @@
 </style>
 
 <script>
+const _staffList = @json($staff->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->values());
+const _staffIndexUrl = '{{ route("bms.staff.index") }}';
+
+function openDelModal(id, name) {
+  const modal = document.getElementById('del-modal');
+  document.getElementById('dm-name').textContent = name;
+  document.getElementById('dm-form').action = _staffIndexUrl + '/' + id;
+  const sel = document.getElementById('dm-select');
+  sel.innerHTML = '<option value="">— No transfer (clear references) —</option>';
+  _staffList.filter(s => s.id != id).forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = s.name;
+    sel.appendChild(o);
+  });
+  modal.style.display = 'flex';
+}
+
+function closeDelModal() {
+  document.getElementById('del-modal').style.display = 'none';
+}
+
+document.getElementById('del-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDelModal();
+});
+
 function togglePwReset(key) {
   const row = document.getElementById('pw-row-' + key);
   const btn = document.getElementById('btn-pw-' + key);
@@ -200,6 +222,7 @@ function togglePwReset(key) {
   if (btn) { btn.style.background = open ? 'var(--accent-dim)' : ''; btn.style.borderColor = open ? 'var(--accent)' : ''; }
   if (open) { const inp = document.getElementById('pw-inp-' + key); if (inp) inp.focus(); }
 }
+
 function togglePwVis(id, btn) {
   const inp = document.getElementById(id);
   inp.type = inp.type === 'password' ? 'text' : 'password';
