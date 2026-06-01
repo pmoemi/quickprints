@@ -270,6 +270,12 @@ class StaffController extends BmsController
         $this->authorizeBms('staff', 'delete');
 
         $staff = Staff::query()->findOrFail($id);
+
+        // Prevent deleting your own account
+        if ($staff->user_id && $staff->user_id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
         $transferToId = $request->input('transfer_to_id') ? (int) $request->input('transfer_to_id') : null;
 
         if ($transferToId) {
@@ -282,6 +288,11 @@ class StaffController extends BmsController
             DB::table('attendance_records')->where('staff_id', $id)->update(['staff_id' => $transferToId]);
             DB::table('leave_requests')->where('staff_id', $id)->update(['staff_id' => $transferToId]);
             DB::table('payroll_entries')->where('staff_id', $id)->update(['staff_id' => $transferToId]);
+        }
+
+        // Delete the linked user account so the auto-sync doesn't recreate this staff record
+        if ($staff->user_id) {
+            User::query()->where('id', $staff->user_id)->delete();
         }
 
         $staff->delete();
