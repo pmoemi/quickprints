@@ -42,6 +42,31 @@ class StaffController extends BmsController
             });
         }
 
+        // Auto-sync: create staff records for any users that have no linked staff record.
+        // This runs as a no-op once every user is synced.
+        $linkedUserIds = Staff::query()->whereNotNull('user_id')->pluck('user_id');
+        $unlinkedUsers = User::query()->whereNotIn('id', $linkedUserIds)->get();
+        foreach ($unlinkedUsers as $u) {
+            // If a staff record already shares this email, just link it rather than duplicate.
+            $existing = Staff::query()->whereNull('user_id')->where('email', $u->email)->first();
+            if ($existing) {
+                $existing->update(['user_id' => $u->id]);
+            } else {
+                Staff::query()->create([
+                    'id'          => $this->nextNumericId(Staff::class),
+                    'name'        => $u->name,
+                    'email'       => $u->email,
+                    'role'        => $u->role,
+                    'branch'      => $u->branch ?? 'all',
+                    'salary'      => 0,
+                    'active'      => true,
+                    'color'       => '#' . substr(md5($u->email ?? ''), 0, 6),
+                    'user_id'     => $u->id,
+                    'is_designer' => false,
+                ]);
+            }
+        }
+
         $staff = $query->get();
 
         $branches = array_merge(['all'], $this->branchNames());
