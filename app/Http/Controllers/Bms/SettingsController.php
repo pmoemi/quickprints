@@ -498,6 +498,7 @@ class SettingsController extends BmsController
             'allBranches'          => $request->boolean('allBranches'),
             'resetStaffPasswords'  => $request->boolean('resetStaffPasswords'),
             'viewDashboardSummaries' => $request->boolean('viewDashboardSummaries'),
+            'viewBranchClients'     => $request->boolean('viewBranchClients'),
         ];
         $this->settings->update(['roles' => $roles]);
 
@@ -527,6 +528,7 @@ class SettingsController extends BmsController
             'allBranches'         => $request->boolean('allBranches'),
             'resetStaffPasswords' => $request->boolean('resetStaffPasswords'),
             'viewDashboardSummaries' => $request->boolean('viewDashboardSummaries'),
+            'viewBranchClients'     => $request->boolean('viewBranchClients'),
         ];
 
         if ($newName !== $name) {

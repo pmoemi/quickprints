@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bms;
 
 use App\Models\PrintJob;
 use App\Models\SalesLog;
+use App\Support\BmsPermissions;
 use App\Services\JobDesignerNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,14 +30,22 @@ class SalesLogController extends BmsController
     {
         $this->authorizeBms('saleslog', 'create');
 
-        return view('saleslog.form', [
+        $data = [
             'log' => new SalesLog([
                 'date' => now()->toDateString(),
                 'branch' => $this->defaultAssignableBranch(),
             ]),
             'branches' => $this->assignableBranchNames(),
             'designers' => $this->assignableDesigners($this->defaultAssignableBranch()),
-        ]);
+        ];
+
+        // If the role has the sales-client visibility capability, include clients
+        // list (scoped by branch/session via scopedClientsQuery()).
+        if (BmsPermissions::canViewBranchClients(auth()->user()?->role)) {
+            $data['clients'] = $this->scopedClientsQuery()->orderBy('name')->get();
+        }
+
+        return view('saleslog.form', $data);
     }
 
     public function store(Request $request): RedirectResponse
@@ -45,7 +54,9 @@ class SalesLogController extends BmsController
 
         $data = $request->validate([
             'date'         => 'required|date',
-            'client_name'  => 'required|string|max:120',
+            // Allow selecting an existing client via client_id, or entering a new name
+            'client_id'    => $this->scopedClientIdRules(),
+            'client_name'  => 'required_without:client_id|string|max:120',
             'phone'        => 'nullable|string|max:40',
             'job_desc'     => 'required|string|max:255',
             'category'     => 'nullable|string|max:80',
@@ -67,6 +78,15 @@ class SalesLogController extends BmsController
             $data['pay_status'] ?? 'pending',
         );
 
+        // If a client_id was provided, fill in the client fields from the record
+        if (! empty($data['client_id'])) {
+            $client = $this->scopedClientsQuery()->find($data['client_id']);
+            if ($client) {
+                $data['client_name'] = $client->name;
+                $data['phone'] = $data['phone'] ?? $client->phone;
+            }
+        }
+
         $jobId = $this->nextJobId($data['branch'] ?? null);
         $data['id']           = $this->nextNumericId(SalesLog::class);
         $data['job_id']       = $jobId;
@@ -81,7 +101,7 @@ class SalesLogController extends BmsController
 
         $job = PrintJob::query()->create([
             'id'           => $jobId,
-            'client_id'    => null,
+            'client_id'    => $data['client_id'] ?? null,
             'title'        => $data['job_desc'],
             'branch'       => $data['branch'],
             'category'     => $data['category'] ?? null,

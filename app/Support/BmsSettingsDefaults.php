@@ -182,6 +182,8 @@ class BmsSettingsDefaults
                     'allBranches'            => false,
                     'resetStaffPasswords'    => false,
                     'viewDashboardSummaries' => false,
+                    // When true the role may view clients belonging to their assigned branch
+                    'viewBranchClients'      => true,
                 ],
                 'Sales' => [
                     'perms' => [

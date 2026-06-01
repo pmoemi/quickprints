@@ -189,6 +189,25 @@ class BmsPermissions
         return (bool) ($dynamicRoles[$role]['resetStaffPasswords'] ?? false);
     }
 
+    /**
+     * Returns true if the given role is allowed to view clients belonging to
+     * their own branch. Admin always has this capability.
+     */
+    public static function canViewBranchClients(?string $role): bool
+    {
+        if (! $role) {
+            return false;
+        }
+
+        if ($role === 'Admin') {
+            return true;
+        }
+
+        $dynamicRoles = BmsSettingsDefaults::roles();
+
+        return (bool) ($dynamicRoles[$role]['viewBranchClients'] ?? false);
+    }
+
     public static function actionFromMethod(string $method): string
     {
         return match (strtoupper($method)) {
@@ -209,6 +228,9 @@ class BmsPermissions
         if ($role === 'Admin') {
             return true;
         }
+
+        // Note: branch-scoped client visibility for sales is handled
+        // in controllers (e.g. SalesLogController) via `canViewBranchClients()`.
 
         $dynamicRoles = BmsSettingsDefaults::roles();
         if (isset($dynamicRoles[$role])) {

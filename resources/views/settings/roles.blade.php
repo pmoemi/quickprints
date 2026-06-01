@@ -145,6 +145,13 @@
                 <span style="color:var(--text3);"> — can see sales, revenue, branch rankings, and payment totals on the dashboard</span>
               </span>
             </label>
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;display:flex;margin-top:8px;">
+              <input type="checkbox" name="viewBranchClients" value="1" {{ ($rd['viewBranchClients'] ?? false) ? 'checked' : '' }}>
+              <span>
+                <strong>View Branch Clients (Sales)</strong>
+                <span style="color:var(--text3);"> — allow selecting existing clients from your branch when logging sales</span>
+              </span>
+            </label>
           </div>
 
           <div style="display:flex;gap:8px;margin-top:16px;">
@@ -223,6 +230,13 @@
               <span>
                 <strong>Dashboard Financial Summaries</strong>
                 <span style="color:var(--text3);"> — can see sales, revenue, branch rankings, and payment totals on the dashboard</span>
+              </span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+              <input type="checkbox" name="viewBranchClients" value="1">
+              <span>
+                <strong>View Branch Clients (Sales)</strong>
+                <span style="color:var(--text3);"> — allow selecting existing clients from your branch when logging sales</span>
               </span>
             </label>
           </div>

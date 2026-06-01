@@ -35,8 +35,21 @@
 
     <div class="form-row cols-2">
       <div class="fld">
-        <label>Client Name <span style="color:var(--red)">*</span></label>
-        <input type="text" name="client_name" value="{{ old('client_name', $log->client_name) }}" required placeholder="Client full name">
+        <label>Client <span style="color:var(--red)">*</span></label>
+        @if(!empty($clients) && count($clients) > 0)
+          <select name="client_id">
+            <option value="">— New client —</option>
+            @foreach($clients as $c)
+              <option value="{{ $c->id }}" {{ (string) old('client_id') === (string) $c->id ? 'selected' : '' }}>{{ $c->name }} @if($c->company) ({{ $c->company }}) @endif</option>
+            @endforeach
+          </select>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px;">Or enter a new client below.</div>
+          <div style="margin-top:8px;">
+            <input type="text" name="client_name" value="{{ old('client_name', $log->client_name) }}" placeholder="New client full name">
+          </div>
+        @else
+          <input type="text" name="client_name" value="{{ old('client_name', $log->client_name) }}" required placeholder="Client full name">
+        @endif
       </div>
       <div class="fld">
         <label>Phone</label>
