@@ -58,15 +58,23 @@ class DashboardController extends BmsController
             ->take(8);
 
         $yesterday = Carbon::yesterday()->toDateString();
-        $weekStart = Carbon::today()->subDays(6);
+        $weekStart    = Carbon::today()->subDays(6);
         $prevWeekStart = Carbon::today()->subDays(13);
-        $prevWeekEnd = Carbon::today()->subDays(7);
+        $prevWeekEnd   = Carbon::today()->subDays(7);
+        $todayCarbon  = Carbon::today();
 
-        $todaySales = (float) $salesLog->filter(fn ($s) => optional($s->date)->toDateString() === $today)->sum('amount');
+        $todaySales     = (float) $salesLog->filter(fn ($s) => optional($s->date)->toDateString() === $today)->sum('amount');
         $yesterdaySales = (float) $salesLog->filter(fn ($s) => optional($s->date)->toDateString() === $yesterday)->sum('amount');
-        $weekRevenue = (float) $salesLog->filter(fn ($s) => optional($s->date)->gte($weekStart))->sum('amount');
+        // Upper-bound to today so future-dated entries don't inflate the weekly figure
+        $weekRevenue    = (float) $salesLog->filter(fn ($s) => optional($s->date)->between($weekStart, $todayCarbon))->sum('amount');
         $prevWeekRevenue = (float) $salesLog->filter(fn ($s) => optional($s->date)->between($prevWeekStart, $prevWeekEnd))->sum('amount');
-        $monthRevenue = (float) $revenueByDay->sum();
+        $monthRevenue   = (float) $revenueByDay->sum();
+
+        // Actual cash collected: sum of cash_amount + mpesa_amount (not print_job paid flag)
+        $totalCollected  = (float) $salesLog->sum(fn ($s) => ($s->cash_amount ?? 0) + ($s->mpesa_amount ?? 0));
+        $monthCollected  = (float) $salesLog
+            ->filter(fn ($s) => optional($s->date)->between($start, $todayCarbon))
+            ->sum(fn ($s) => ($s->cash_amount ?? 0) + ($s->mpesa_amount ?? 0));
 
         return view('dashboard', [
             'jobs' => $jobs,
@@ -78,11 +86,13 @@ class DashboardController extends BmsController
             'revenueByDay' => $revenueByDay,
             'jobsByCategory' => $jobsByCategory,
             'revenueByCategory' => $revenueByCategory,
-            'todaySales' => $todaySales,
-            'yesterdaySales' => $yesterdaySales,
-            'weekRevenue' => $weekRevenue,
+            'todaySales'      => $todaySales,
+            'yesterdaySales'  => $yesterdaySales,
+            'weekRevenue'     => $weekRevenue,
             'prevWeekRevenue' => $prevWeekRevenue,
-            'monthRevenue' => $monthRevenue,
+            'monthRevenue'    => $monthRevenue,
+            'totalCollected'  => $totalCollected,
+            'monthCollected'  => $monthCollected,
             'clients' => $clients,
             'canViewDashboardSummaries' => BmsPermissions::canViewDashboardSummaries(auth()->user()?->role),
         ]);

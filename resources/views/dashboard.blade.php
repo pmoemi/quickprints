@@ -212,8 +212,8 @@ body.theme-light .dash-hero{background:linear-gradient(135deg,var(--brand-deep) 
         </div>
         <div class="dash-hero-metric">
           <div class="lbl">Collected</div>
-          <div class="val">{{ $bmsCurrency }} {{ number_format($totalRevenue) }}</div>
-          <div class="sub">{{ $bmsCurrency }} {{ number_format($monthRevenue) }} in 30 days</div>
+          <div class="val">{{ $bmsCurrency }} {{ number_format($totalCollected) }}</div>
+          <div class="sub">{{ $bmsCurrency }} {{ number_format($monthCollected) }} in 30 days</div>
         </div>
       </div>
       @endif
